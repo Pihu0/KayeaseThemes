@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { LayoutGrid, Menu, X } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
+import { cn } from "@/lib/utils";
 
 const navLinks = [
   { href: "/", label: "Themes" },
@@ -15,7 +17,11 @@ const navLinks = [
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   return (
     <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur">
@@ -27,14 +33,20 @@ export default function Navbar() {
         </Link>
 
         {/* Center nav links (desktop) */}
-        <div className="hidden items-center gap-6 text-sm font-medium text-muted-foreground md:flex">
+        <div className="hidden items-center gap-8 text-sm font-medium md:flex">
           {navLinks.map((l) => (
             <Link
               key={l.href}
               href={l.href}
-              className="transition-colors hover:text-foreground"
+              className={cn(
+                "relative transition-colors hover:text-foreground",
+                isActive(l.href) ? "text-foreground" : "text-muted-foreground"
+              )}
             >
               {l.label}
+              {isActive(l.href) && (
+                <span className="absolute -bottom-1.5 left-0 right-0 h-0.5 rounded-full bg-primary" />
+              )}
             </Link>
           ))}
         </div>
@@ -102,7 +114,12 @@ export default function Navbar() {
                 key={l.href}
                 href={l.href}
                 onClick={() => setMenuOpen(false)}
-                className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className={cn(
+                  "rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground",
+                  isActive(l.href)
+                    ? "bg-muted text-foreground"
+                    : "text-muted-foreground"
+                )}
               >
                 {l.label}
               </Link>
