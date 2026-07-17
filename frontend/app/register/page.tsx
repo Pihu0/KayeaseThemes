@@ -53,6 +53,8 @@ export default function RegisterPage() {
               <Input
                 id="name"
                 name="name"
+                autoComplete="name"
+                autoFocus
                 required
                 value={form.name}
                 onChange={(e) => update("name", e.target.value)}
@@ -64,6 +66,7 @@ export default function RegisterPage() {
                 id="email"
                 name="email"
                 type="email"
+                autoComplete="email"
                 required
                 value={form.email}
                 onChange={(e) => update("email", e.target.value)}
@@ -75,6 +78,7 @@ export default function RegisterPage() {
                 id="password"
                 name="password"
                 type="password"
+                autoComplete="new-password"
                 required
                 minLength={6}
                 value={form.password}
