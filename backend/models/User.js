@@ -18,8 +18,20 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: [true, "Password is required"],
-      minlength: [6, "Password must be at least 6 characters"],
       select: false, // never return the password in queries by default
+      // Runs on the PLAINTEXT password (validation happens before the
+      // pre-save hash hook). Keep these 5 rules in sync with the frontend
+      // meter in frontend/components/ui/password-input.tsx.
+      validate: {
+        validator: (value) =>
+          value.length >= 8 &&
+          /[0-9]/.test(value) &&
+          /[a-z]/.test(value) &&
+          /[A-Z]/.test(value) &&
+          /[!@#$%^&*(),.?":{}|<>]/.test(value),
+        message:
+          "Password must be at least 8 characters and include a number, an uppercase and a lowercase letter, and a special character",
+      },
     },
     role: {
       type: String,

@@ -4,6 +4,7 @@ import { ReactNode } from "react";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/context/AuthContext";
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
@@ -13,11 +14,13 @@ export function Providers({ children }: { children: ReactNode }) {
       enableSystem
       disableTransitionOnChange
     >
-      <AuthProvider>
-        {children}
-        {/* Global toast notifications for success/error messages */}
-        <Toaster richColors position="top-right" />
-      </AuthProvider>
+      <TooltipProvider>
+        <AuthProvider>
+          {children}
+          {/* Global toast notifications for success/error messages */}
+          <Toaster richColors position="top-right" />
+        </AuthProvider>
+      </TooltipProvider>
     </ThemeProvider>
   );
 }

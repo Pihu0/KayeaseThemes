@@ -8,6 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput, isStrongPassword } from "@/components/ui/password-input";
 import {
   Card,
   CardContent,
@@ -72,20 +73,18 @@ export default function RegisterPage() {
                 onChange={(e) => update("email", e.target.value)}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                required
-                minLength={6}
-                value={form.password}
-                onChange={(e) => update("password", e.target.value)}
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <PasswordInput
+              name="password"
+              autoComplete="new-password"
+              required
+              value={form.password}
+              onChange={(value) => update("password", value)}
+            />
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={loading || !isStrongPassword(form.password)}
+            >
               {loading ? "Creating…" : "Sign up"}
             </Button>
             <p className="text-center text-sm text-muted-foreground">
