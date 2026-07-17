@@ -15,7 +15,15 @@ const createTheme = async (req, res) => {
 // @route  GET /api/themes?search=&category=&sort=&page=&limit=
 const getThemes = async (req, res) => {
   try {
-    const { search, category, sort, page = 1, limit = 9 } = req.query;
+    const {
+      search,
+      category,
+      framework,
+      pricing,
+      sort,
+      page = 1,
+      limit = 9,
+    } = req.query;
 
     // Build the MongoDB query object dynamically
     const query = {};
@@ -29,6 +37,12 @@ const getThemes = async (req, res) => {
     }
     if (category) {
       query.category = category;
+    }
+    if (framework) {
+      query.framework = framework;
+    }
+    if (pricing === "free" || pricing === "premium") {
+      query.pricingType = pricing;
     }
 
     // Sorting

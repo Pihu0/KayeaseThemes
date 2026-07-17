@@ -24,7 +24,7 @@ export default async function HomePage({
 
   // Forward the allowed filters to the API
   const query = new URLSearchParams();
-  ["search", "category", "sort", "page"].forEach((k) => {
+  ["search", "category", "framework", "pricing", "sort", "page"].forEach((k) => {
     if (sp[k]) query.set(k, sp[k] as string);
   });
 
