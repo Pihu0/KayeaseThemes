@@ -13,6 +13,12 @@ export default function ThemeCard({
   theme: Theme;
   priority?: boolean;
 }) {
+  const isFree = theme.pricingType === "free" || theme.price === 0;
+  const onSale = theme.originalPrice > theme.price && theme.price > 0;
+  const discount = onSale
+    ? Math.round((1 - theme.price / theme.originalPrice) * 100)
+    : 0;
+
   return (
     <motion.div
       whileHover={{ y: -6 }}
@@ -39,14 +45,26 @@ export default function ThemeCard({
             </div>
           )}
           <Badge className="absolute left-3 top-3">{theme.category}</Badge>
+          {onSale && (
+            <Badge className="absolute right-3 top-3 bg-emerald-600 text-white hover:bg-emerald-600">
+              {discount}% OFF
+            </Badge>
+          )}
         </div>
 
         {/* Title + price */}
         <div className="flex items-center justify-between gap-2 p-4">
           <h3 className="truncate font-medium">{theme.title}</h3>
-          <span className="shrink-0 font-semibold text-primary">
-            ${theme.price}
-          </span>
+          <div className="flex shrink-0 items-baseline gap-1.5">
+            {onSale && (
+              <span className="text-xs text-muted-foreground line-through">
+                ${theme.originalPrice}
+              </span>
+            )}
+            <span className="font-semibold text-primary">
+              {isFree ? "Free" : `$${theme.price}`}
+            </span>
+          </div>
         </div>
       </Link>
     </motion.div>

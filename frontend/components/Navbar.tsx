@@ -4,6 +4,7 @@ import Link from "next/link";
 import { LayoutGrid } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -38,6 +39,7 @@ export default function Navbar() {
 
         {/* Auth actions */}
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           {user ? (
             <>
               {user.role === "admin" && (
