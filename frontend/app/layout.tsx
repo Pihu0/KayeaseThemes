@@ -1,14 +1,24 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Space_Grotesk, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { Providers } from "./providers";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Body font — clean, highly legible
+const inter = Inter({
+  variable: "--font-sans",
   subsets: ["latin"],
+  display: "swap",
+});
+
+// Heading font — modern, geometric, distinctive
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-heading",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["500", "600", "700"],
 });
 
 const geistMono = Geist_Mono({
@@ -54,7 +64,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${spaceGrotesk.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <Providers>

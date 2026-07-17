@@ -9,9 +9,11 @@ import type { Theme } from "@/lib/types";
 export default function ThemeCard({
   theme,
   priority = false,
+  index = 0,
 }: {
   theme: Theme;
   priority?: boolean;
+  index?: number;
 }) {
   const isFree = theme.pricingType === "free" || theme.price === 0;
   const onSale = theme.originalPrice > theme.price && theme.price > 0;
@@ -21,12 +23,19 @@ export default function ThemeCard({
 
   return (
     <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{
+        duration: 0.45,
+        delay: Math.min(index * 0.05, 0.3),
+        ease: [0.22, 1, 0.36, 1],
+      }}
       whileHover={{ y: -6 }}
-      transition={{ type: "spring", stiffness: 300, damping: 20 }}
     >
       <Link
         href={`/themes/${theme.slug}`}
-        className="group block overflow-hidden rounded-xl border bg-card shadow-sm transition-shadow hover:shadow-md"
+        className="group block overflow-hidden rounded-2xl border bg-card shadow-sm transition-all duration-300 hover:border-primary/20 hover:shadow-xl"
       >
         {/* Preview image */}
         <div className="relative aspect-16/10 overflow-hidden bg-muted">
@@ -36,15 +45,19 @@ export default function ThemeCard({
               alt={`${theme.title} theme preview`}
               fill
               priority={priority}
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+              className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
             />
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
               No preview
             </div>
           )}
-          <Badge className="absolute left-3 top-3">{theme.category}</Badge>
+          {/* subtle gradient on hover for depth */}
+          <div className="absolute inset-0 bg-linear-to-t from-black/15 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          <Badge className="absolute left-3 top-3 backdrop-blur">
+            {theme.category}
+          </Badge>
           {onSale && (
             <Badge className="absolute right-3 top-3 bg-emerald-600 text-white hover:bg-emerald-600">
               {discount}% OFF
@@ -54,7 +67,9 @@ export default function ThemeCard({
 
         {/* Title + price */}
         <div className="flex items-center justify-between gap-2 p-4">
-          <h3 className="truncate font-medium">{theme.title}</h3>
+          <h3 className="truncate font-medium transition-colors group-hover:text-primary">
+            {theme.title}
+          </h3>
           <div className="flex shrink-0 items-baseline gap-1.5">
             {onSale && (
               <span className="text-xs text-muted-foreground line-through">

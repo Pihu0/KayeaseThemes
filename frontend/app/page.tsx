@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { apiFetch } from "@/lib/api";
 import ThemeCard from "@/components/ThemeCard";
+import Hero from "@/components/Hero";
 import ThemeFilters from "@/components/ThemeFilters";
 import Pagination from "@/components/Pagination";
 import type { Theme, Category } from "@/lib/types";
@@ -41,15 +42,7 @@ export default async function HomePage({
   return (
     <main className="mx-auto w-full max-w-[1600px] px-4 py-16 sm:px-6 lg:px-8">
       {/* Hero */}
-      <section className="mb-12 text-center">
-        <h1 className="text-4xl font-bold tracking-tight text-balance sm:text-5xl">
-          Premium Website Themes
-        </h1>
-        <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground text-pretty">
-          Production-ready templates for every project — beautifully designed,
-          fully responsive, and ready to launch.
-        </p>
-      </section>
+      <Hero />
 
       {/* Filters (client) — Suspense required for useSearchParams */}
       <Suspense fallback={<div className="mb-10 h-9" />}>
@@ -65,7 +58,12 @@ export default async function HomePage({
         <>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {data.themes.map((theme, i) => (
-              <ThemeCard key={theme._id} theme={theme} priority={i < 3} />
+              <ThemeCard
+                key={theme._id}
+                theme={theme}
+                priority={i < 4}
+                index={i}
+              />
             ))}
           </div>
           <Pagination page={data.page} pages={data.pages} params={sp} />
