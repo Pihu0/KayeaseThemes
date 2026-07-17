@@ -60,6 +60,7 @@ export default function ContactPage() {
               <Input
                 id="name"
                 name="name"
+                autoComplete="name"
                 required
                 value={form.name}
                 onChange={(e) => update("name", e.target.value)}
@@ -71,6 +72,7 @@ export default function ContactPage() {
                 id="email"
                 name="email"
                 type="email"
+                autoComplete="email"
                 required
                 value={form.email}
                 onChange={(e) => update("email", e.target.value)}
