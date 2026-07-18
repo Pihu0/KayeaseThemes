@@ -24,6 +24,7 @@ const userSchema = new mongoose.Schema(
       // meter in frontend/components/ui/password-input.tsx.
       validate: {
         validator: (value) =>
+          typeof value === "string" &&
           value.length >= 8 &&
           /[0-9]/.test(value) &&
           /[a-z]/.test(value) &&
