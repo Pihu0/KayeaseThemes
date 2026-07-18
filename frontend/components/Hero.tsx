@@ -1,20 +1,29 @@
 "use client";
 
 import { motion } from "motion/react";
+import { MagneticText } from "@/components/MagneticText";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
 export default function Hero() {
   return (
     <section className="mb-14 text-center">
-      <motion.h1
+      {/* Real H1 for SEO + screen readers; the magnetic effect below is
+          decorative (aria-hidden) and shows the same words. */}
+      <h1 className="sr-only">Premium Website Themes</h1>
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease }}
-        className="text-4xl font-bold tracking-tight text-balance sm:text-5xl lg:text-6xl"
+        aria-hidden="true"
+        className="flex justify-center"
       >
-        Premium Website Themes
-      </motion.h1>
+        <MagneticText
+          text="Premium Website Themes"
+          hoverText="Built by Kayease"
+        />
+      </motion.div>
+
       <motion.p
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
