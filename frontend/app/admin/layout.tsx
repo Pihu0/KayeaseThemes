@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -20,13 +20,21 @@ export default function AdminLayout({
   const { user, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  // Remember whether this session was ever authorized, so we can tell an
+  // expired session apart from a plain "not logged in" visit.
+  const wasAuthed = useRef(false);
 
   // Central auth guard for the whole /admin section
   useEffect(() => {
-    if (!loading && (!user || user.role !== "admin")) {
-      router.replace("/login");
+    if (loading) return;
+    if (user && user.role === "admin") {
+      wasAuthed.current = true;
+      return;
     }
-  }, [loading, user, router]);
+    const params = new URLSearchParams({ redirect: pathname });
+    if (wasAuthed.current) params.set("reason", "session");
+    router.replace(`/login?${params.toString()}`);
+  }, [loading, user, router, pathname]);
 
   if (loading || !user || user.role !== "admin") {
     return (

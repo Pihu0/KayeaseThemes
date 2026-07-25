@@ -5,6 +5,7 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import { Providers } from "./providers";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SiteChrome from "@/components/SiteChrome";
 
 // Body font — clean, highly legible
 const inter = Inter({
@@ -74,11 +75,14 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${inter.variable} ${spaceGrotesk.variable} ${geistMono.variable} ${interTight.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      {/* suppressHydrationWarning: browser extensions inject attributes on
+          <body> (e.g. __processed_…__) before React hydrates, which would
+          otherwise trip a hydration mismatch. */}
+      <body suppressHydrationWarning className="min-h-full flex flex-col">
         <Providers>
-          <Navbar />
-          {children}
-          <Footer />
+          <SiteChrome navbar={<Navbar />} footer={<Footer />}>
+            {children}
+          </SiteChrome>
         </Providers>
         {/* Loads GA4 after hydration; only when a Measurement ID is set */}
         {process.env.NEXT_PUBLIC_GA_ID && (

@@ -185,7 +185,7 @@ export default function ArchiveExperience({
             }}
           />
 
-          <ArchiveHeader total={total || themes.length} />
+          <ArchiveHeader total={total || themes.length} themes={themes} />
 
           <DiscoveryBar
             filters={filters}
