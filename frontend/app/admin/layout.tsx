@@ -39,20 +39,28 @@ export default function AdminLayout({
   return (
     <div className="mx-auto w-full max-w-[1600px] px-4 py-10 sm:px-6 lg:px-8">
       <nav className="mb-8 flex gap-1 border-b">
-        {tabs.map((t) => (
-          <Link
-            key={t.href}
-            href={t.href}
-            className={cn(
-              "border-b-2 px-4 py-2 text-sm font-medium transition-colors",
-              pathname === t.href
-                ? "border-primary text-foreground"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            )}
-          >
-            {t.label}
-          </Link>
-        ))}
+        {tabs.map((t) => {
+          // Dashboard matches exactly; section tabs also match their nested
+          // routes (e.g. /admin/themes/new highlights "Themes").
+          const active =
+            t.href === "/admin"
+              ? pathname === "/admin"
+              : pathname.startsWith(t.href);
+          return (
+            <Link
+              key={t.href}
+              href={t.href}
+              className={cn(
+                "border-b-2 px-4 py-2 text-sm font-medium transition-colors",
+                active
+                  ? "border-primary text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {t.label}
+            </Link>
+          );
+        })}
       </nav>
       {children}
     </div>

@@ -6,10 +6,12 @@ export default function Pagination({
   page,
   pages,
   params,
+  basePath = "/themes",
 }: {
   page: number;
   pages: number;
   params: Record<string, string | undefined>;
+  basePath?: string;
 }) {
   if (pages <= 1) return null;
 
@@ -20,7 +22,7 @@ export default function Pagination({
       if (v && k !== "page") sp.set(k, v);
     });
     sp.set("page", String(p));
-    return `/?${sp.toString()}`;
+    return `${basePath}?${sp.toString()}`;
   };
 
   const base = buttonVariants({ variant: "outline", size: "sm" });

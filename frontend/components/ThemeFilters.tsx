@@ -8,17 +8,28 @@ import {
   TagIcon,
   GlobeIcon,
   CircleDollarSignIcon,
+  ChevronDownIcon,
 } from "lucide-react";
 import { Filters, type Filter, type FilterFieldConfig } from "@/components/reui/filters";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+} from "@/components/ui/dropdown-menu";
 import type { Category } from "@/lib/types";
 
 const FRAMEWORKS = ["React", "Next.js", "Vue", "Shopify", "WordPress", "HTML/CSS"];
 const FILTER_KEYS = ["category", "framework", "pricing"] as const;
 
-const selectClass =
-  "h-9 rounded-lg border bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+const SORT_OPTIONS = [
+  { value: "", label: "Newest" },
+  { value: "price-asc", label: "Price: Low to High" },
+  { value: "price-desc", label: "Price: High to Low" },
+] as const;
 
 export default function ThemeFilters({
   categories,
@@ -103,6 +114,8 @@ export default function ThemeFilters({
   );
 
   const sort = searchParams.get("sort") ?? "";
+  const sortLabel =
+    SORT_OPTIONS.find((o) => o.value === sort)?.label ?? "Newest";
 
   return (
     <div className="mb-10 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -127,16 +140,29 @@ export default function ThemeFilters({
         }
       />
 
-      <select
-        value={sort}
-        onChange={(e) => setParam("sort", e.target.value)}
-        className={selectClass}
-        aria-label="Sort themes"
-      >
-        <option value="">Newest</option>
-        <option value="price-asc">Price: Low to High</option>
-        <option value="price-desc">Price: High to Low</option>
-      </select>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button variant="outline" size="sm" aria-label="Sort themes">
+              <span className="text-muted-foreground">Sort:</span>
+              {sortLabel}
+              <ChevronDownIcon className="size-4 text-muted-foreground" />
+            </Button>
+          }
+        />
+        <DropdownMenuContent align="end" className="w-auto min-w-48">
+          <DropdownMenuRadioGroup
+            value={sort}
+            onValueChange={(value) => setParam("sort", value)}
+          >
+            {SORT_OPTIONS.map((o) => (
+              <DropdownMenuRadioItem key={o.value || "newest"} value={o.value}>
+                {o.label}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }

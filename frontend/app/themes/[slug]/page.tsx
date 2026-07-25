@@ -95,7 +95,7 @@ export default async function ThemeDetailsPage({
       />
 
       <Link
-        href="/"
+        href="/themes"
         className="mb-8 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" />
@@ -140,8 +140,8 @@ export default async function ThemeDetailsPage({
             <div>
               <h2 className="mb-4 text-xl font-semibold">Key Features</h2>
               <ul className="grid gap-3 sm:grid-cols-2">
-                {theme.keyFeatures.map((f) => (
-                  <li key={f} className="flex items-start gap-2">
+                {theme.keyFeatures.map((f, i) => (
+                  <li key={`${f}-${i}`} className="flex items-start gap-2">
                     <Check className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
                     <span className="text-sm">{f}</span>
                   </li>
@@ -157,8 +157,8 @@ export default async function ThemeDetailsPage({
                 <div>
                   <h3 className="mb-3 font-semibold">Technologies</h3>
                   <div className="flex flex-wrap gap-2">
-                    {theme.technologies.map((t) => (
-                      <Badge key={t} variant="secondary">
+                    {theme.technologies.map((t, i) => (
+                      <Badge key={`${t}-${i}`} variant="secondary">
                         {t}
                       </Badge>
                     ))}
@@ -169,8 +169,8 @@ export default async function ThemeDetailsPage({
                 <div>
                   <h3 className="mb-3 font-semibold">Browser Support</h3>
                   <div className="flex flex-wrap gap-2">
-                    {theme.browserSupport.map((b) => (
-                      <Badge key={b} variant="secondary">
+                    {theme.browserSupport.map((b, i) => (
+                      <Badge key={`${b}-${i}`} variant="secondary">
                         {b}
                       </Badge>
                     ))}
@@ -196,9 +196,32 @@ export default async function ThemeDetailsPage({
             </div>
 
             <div className="space-y-2">
-              <Button className="w-full">
-                {isFree ? "Download for Free" : "Buy Now"}
-              </Button>
+              {/* Primary action. No checkout is wired, so paid themes route to
+                  contact; free themes with a download link download directly. */}
+              {isFree && theme.downloadUrl ? (
+                <Button
+                  render={
+                    <a
+                      href={theme.downloadUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    />
+                  }
+                  nativeButton={false}
+                  className="w-full"
+                  data-icon="inline-start"
+                >
+                  <Download /> Download for Free
+                </Button>
+              ) : (
+                <Button
+                  render={<Link href="/contact" />}
+                  nativeButton={false}
+                  className="w-full"
+                >
+                  {isFree ? "Get this theme" : "Buy now"}
+                </Button>
+              )}
               {theme.demoUrl && (
                 <Button
                   render={
@@ -215,7 +238,8 @@ export default async function ThemeDetailsPage({
                   <ExternalLink className="h-4 w-4" /> Live Demo
                 </Button>
               )}
-              {theme.downloadUrl && (
+              {/* Only for paid themes — free downloads use the primary button above. */}
+              {!isFree && theme.downloadUrl && (
                 <Button
                   render={
                     <a
@@ -261,8 +285,8 @@ export default async function ThemeDetailsPage({
             {theme.tags?.length > 0 && (
               <div className="flex flex-wrap items-center gap-2 border-t pt-4">
                 <TagIcon className="h-4 w-4 text-muted-foreground" />
-                {theme.tags.map((tag) => (
-                  <Badge key={tag} variant="secondary" className="text-xs">
+                {theme.tags.map((tag, i) => (
+                  <Badge key={`${tag}-${i}`} variant="secondary" className="text-xs">
                     {tag}
                   </Badge>
                 ))}

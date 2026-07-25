@@ -35,19 +35,33 @@ export default function ThemeCard({
     >
       <Link
         href={`/themes/${theme.slug}`}
-        className="group block overflow-hidden rounded-2xl border bg-card shadow-sm transition-all duration-300 hover:border-primary/20 hover:shadow-xl"
+        className="group flex h-full flex-col overflow-hidden rounded-2xl border bg-card shadow-sm ring-1 ring-transparent transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:ring-primary/10"
       >
-        {/* Preview image */}
-        <div className="relative aspect-16/10 overflow-hidden bg-muted">
+        {/* Preview image — the full banner (object-contain, never cropped) sits
+            on a blurred fill of the same image, so the card looks full-bleed
+            with no empty bars regardless of the banner's aspect ratio. */}
+        <div className="relative aspect-16/10 overflow-hidden border-b bg-muted">
           {theme.image ? (
-            <Image
-              src={theme.image}
-              alt={`${theme.title} theme preview`}
-              fill
-              priority={priority}
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-              className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-            />
+            <>
+              {/* Blurred backdrop fills the frame */}
+              <Image
+                src={theme.image}
+                alt=""
+                aria-hidden
+                fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                className="scale-110 object-cover blur-xl"
+              />
+              {/* Sharp, fully-visible banner */}
+              <Image
+                src={theme.image}
+                alt={`${theme.title} theme preview`}
+                fill
+                priority={priority}
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                className="relative object-contain transition-transform duration-500 ease-out group-hover:scale-[1.03]"
+              />
+            </>
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
               No preview
@@ -55,30 +69,40 @@ export default function ThemeCard({
           )}
           {/* subtle gradient on hover for depth */}
           <div className="absolute inset-0 bg-linear-to-t from-black/15 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-          <Badge className="absolute left-3 top-3 backdrop-blur">
-            {theme.category}
-          </Badge>
-          {onSale && (
+          {onSale ? (
             <Badge className="absolute right-3 top-3 bg-emerald-600 text-white hover:bg-emerald-600">
               {discount}% OFF
             </Badge>
+          ) : (
+            isFree && (
+              <Badge className="absolute right-3 top-3 bg-emerald-600 text-white hover:bg-emerald-600">
+                Free
+              </Badge>
+            )
           )}
         </div>
 
-        {/* Title + price */}
-        <div className="flex items-center justify-between gap-2 p-4">
-          <h3 className="truncate font-medium transition-colors group-hover:text-primary">
-            {theme.title}
-          </h3>
-          <div className="flex shrink-0 items-baseline gap-1.5">
-            {onSale && (
-              <span className="text-xs text-muted-foreground line-through">
-                ${theme.originalPrice}
-              </span>
+        {/* Body */}
+        <div className="flex flex-1 items-start justify-between gap-3 p-4">
+          <div className="min-w-0">
+            <h3 className="truncate font-semibold transition-colors group-hover:text-primary">
+              {theme.title}
+            </h3>
+            {theme.framework && (
+              <p className="mt-1 truncate text-xs text-muted-foreground">
+                {theme.framework}
+              </p>
             )}
-            <span className="font-semibold text-primary">
+          </div>
+          <div className="shrink-0 text-right leading-tight">
+            {onSale && (
+              <div className="text-xs text-muted-foreground line-through">
+                ${theme.originalPrice}
+              </div>
+            )}
+            <div className="text-base font-semibold text-primary">
               {isFree ? "Free" : `$${theme.price}`}
-            </span>
+            </div>
           </div>
         </div>
       </Link>

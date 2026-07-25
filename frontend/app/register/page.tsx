@@ -87,6 +87,20 @@ export default function RegisterPage() {
             >
               {loading ? "Creating…" : "Sign up"}
             </Button>
+            <p className="text-center text-xs text-muted-foreground text-pretty">
+              By signing up, you agree to our{" "}
+              <Link href="/terms" className="text-primary hover:underline">
+                Terms
+              </Link>{" "}
+              and{" "}
+              <Link
+                href="/privacy-policy"
+                className="text-primary hover:underline"
+              >
+                Privacy Policy
+              </Link>
+              .
+            </p>
             <p className="text-center text-sm text-muted-foreground">
               Already have an account?{" "}
               <Link href="/login" className="text-primary hover:underline">

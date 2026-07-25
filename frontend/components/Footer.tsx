@@ -1,5 +1,11 @@
 import Link from "next/link";
-import { LayoutGrid, Mail } from "lucide-react";
+import { Mail } from "lucide-react";
+import FooterWordmark from "@/components/FooterWordmark";
+
+/* 10 — EDITORIAL FOOTER
+   Dark chapter that continues the Final CTA. Fixed palette (not theme
+   tokens) because it is part of the brand's art direction on every page,
+   in both colour schemes. Ends on the enormous KAYEASE wordmark. */
 
 // GitHub isn't in this lucide version (brand icons removed) — inline SVG.
 function GithubIcon({ className }: { className?: string }) {
@@ -10,93 +16,106 @@ function GithubIcon({ className }: { className?: string }) {
   );
 }
 
-const explore = [
-  { href: "/", label: "Themes" },
-  { href: "/categories", label: "Categories" },
-  { href: "/contact", label: "Contact" },
+const columns: { heading: string; links: { href: string; label: string }[] }[] = [
+  {
+    heading: "Explore",
+    links: [
+      { href: "/themes", label: "Themes" },
+      { href: "/categories", label: "Categories" },
+      { href: "/contact", label: "Custom design" },
+    ],
+  },
+  {
+    heading: "Company",
+    links: [
+      { href: "/contact", label: "Contact" },
+      { href: "/login", label: "Log in" },
+      { href: "/register", label: "Sign up" },
+    ],
+  },
+  {
+    heading: "Legal",
+    links: [
+      { href: "/privacy-policy", label: "Privacy Policy" },
+      { href: "/terms", label: "Terms of Service" },
+    ],
+  },
 ];
 
-const account = [
-  { href: "/login", label: "Log in" },
-  { href: "/register", label: "Sign up" },
-];
-
-const socialClass =
-  "flex h-9 w-9 items-center justify-center rounded-lg border text-muted-foreground transition-colors hover:bg-muted hover:text-foreground";
-
-const linkClass = "text-muted-foreground transition-colors hover:text-foreground";
+const linkClass =
+  "text-sm text-[#98978f] transition-colors duration-300 hover:text-[#f4f4f0]";
 
 export default function Footer() {
   return (
-    <footer className="mt-auto border-t bg-muted/30">
-      <div className="mx-auto max-w-[1600px] px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Brand */}
-          <div className="lg:col-span-2">
-            <Link
-              href="/"
-              className="flex items-center gap-2 text-lg font-semibold"
-            >
-              <LayoutGrid className="h-5 w-5 text-primary" />
-              Kayease<span className="text-primary">Themes</span>
-            </Link>
-            <p className="mt-3 max-w-xs text-sm text-muted-foreground">
-              Premium, production-ready website themes and templates for every
-              kind of project.
+    <footer className="mt-auto bg-[#101010] text-[#f4f4f0]">
+      <div className="mx-auto max-w-[1760px] px-[clamp(1.5rem,4vw,4.5rem)] pt-20">
+        <div className="grid gap-12 border-b border-white/10 pb-16 lg:grid-cols-2">
+          {/* Brand statement */}
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.22em]">
+              Kayease<span className="align-super text-[0.6em]">®</span>
             </p>
-            <div className="mt-5 flex gap-2">
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-[#98978f]">
+              Digital experiences for modern brands. Premium, production-ready
+              website themes for every kind of project.
+            </p>
+            <div className="mt-6 flex gap-2">
               <a
                 href="https://github.com/Pihu0"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="GitHub"
-                className={socialClass}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-[#98978f] transition-colors duration-300 hover:border-white/40 hover:text-[#f4f4f0]"
               >
                 <GithubIcon className="h-4 w-4" />
               </a>
               <a
                 href="mailto:team@kayease.com"
                 aria-label="Email"
-                className={socialClass}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-[#98978f] transition-colors duration-300 hover:border-white/40 hover:text-[#f4f4f0]"
               >
                 <Mail className="h-4 w-4" />
               </a>
             </div>
           </div>
 
-          {/* Explore */}
-          <div>
-            <h3 className="mb-4 text-sm font-semibold">Explore</h3>
-            <ul className="space-y-2.5 text-sm">
-              {explore.map((l) => (
-                <li key={l.href}>
-                  <Link href={l.href} className={linkClass}>
-                    {l.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Account */}
-          <div>
-            <h3 className="mb-4 text-sm font-semibold">Account</h3>
-            <ul className="space-y-2.5 text-sm">
-              {account.map((l) => (
-                <li key={l.href}>
-                  <Link href={l.href} className={linkClass}>
-                    {l.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          {/* Link columns */}
+          <div className="grid grid-cols-2 gap-10 sm:grid-cols-3">
+            {columns.map((col) => (
+              <div key={col.heading}>
+                <h3 className="mb-5 text-[11px] font-medium uppercase tracking-[0.22em] text-[#98978f]">
+                  {col.heading}
+                </h3>
+                <ul className="space-y-3">
+                  {col.links.map((l) => (
+                    <li key={`${col.heading}-${l.label}`}>
+                      <Link href={l.href} className={linkClass}>
+                        {l.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Bottom bar */}
-        <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t pt-6 text-sm text-muted-foreground sm:flex-row">
-          <p>© {new Date().getFullYear()} Kayease Themes. All rights reserved.</p>
-          <p>Built with Next.js, Express &amp; MongoDB.</p>
+        {/* Bottom line */}
+        <div className="flex flex-col items-start justify-between gap-3 py-8 text-xs uppercase tracking-[0.18em] text-[#98978f] sm:flex-row sm:items-center">
+          <p>© {new Date().getFullYear()} Kayease® — Digital experiences for modern brands</p>
+          <div className="flex gap-6">
+            <Link href="/privacy-policy" className="transition-colors duration-300 hover:text-[#f4f4f0]">
+              Privacy
+            </Link>
+            <Link href="/terms" className="transition-colors duration-300 hover:text-[#f4f4f0]">
+              Terms
+            </Link>
+          </div>
+        </div>
+
+        {/* The wordmark almost touches the viewport edges */}
+        <div className="pb-6">
+          <FooterWordmark />
         </div>
       </div>
     </footer>

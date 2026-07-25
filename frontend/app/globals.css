@@ -10,6 +10,7 @@
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-heading);
+  --font-display: var(--font-display);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -35,6 +36,8 @@
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -55,8 +58,11 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  /* Brand accent — indigo-violet. Flows into buttons, links, logo, focus rings. */
+  --primary: oklch(0.548 0.222 276.5);
   --primary-foreground: oklch(0.985 0 0);
+  --brand: oklch(0.548 0.222 276.5);
+  --brand-soft: oklch(0.548 0.222 276.5 / 12%);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
@@ -66,7 +72,7 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --ring: oklch(0.548 0.222 276.5);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -90,8 +96,11 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  /* Brand accent — brighter in dark so CTAs pop against the near-black bg. */
+  --primary: oklch(0.62 0.196 274);
+  --primary-foreground: oklch(0.985 0 0);
+  --brand: oklch(0.62 0.196 274);
+  --brand-soft: oklch(0.62 0.196 274 / 16%);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
@@ -101,7 +110,7 @@
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --ring: oklch(0.62 0.196 274);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -130,5 +139,113 @@
   h1, h2, h3, h4 {
     font-family: var(--font-heading);
     letter-spacing: -0.02em;
+  }
+}
+
+@layer components {
+  /* Soft brand radial glow used behind hero / CTA sections. Theme-aware. */
+  .hero-glow {
+    background-image:
+      radial-gradient(60% 60% at 50% 0%, var(--brand-soft), transparent 70%),
+      radial-gradient(40% 50% at 100% 20%, var(--brand-soft), transparent 60%);
+  }
+
+  /* Gradient brand text for marketing headlines. */
+  .text-gradient-brand {
+    background-image: linear-gradient(
+      100deg,
+      var(--foreground) 0%,
+      var(--brand) 55%,
+      var(--foreground) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Faint dotted grid backdrop for section depth. */
+  .bg-dot-grid {
+    background-image: radial-gradient(
+      currentColor 1px,
+      transparent 1px
+    );
+    background-size: 22px 22px;
+  }
+
+  /* ---------------------------------------------------------------------
+     Editorial system for the homepage experience.
+     Fixed art-direction palette with a dark-scheme counterpart so the
+     site-wide next-themes toggle never produces unreadable text.
+     Dark chapters (--ed-dark) are intentionally identical in both schemes.
+  --------------------------------------------------------------------- */
+  .editorial {
+    --ed-bg: #f5f4f0;          /* primary chapter background   */
+    --ed-surface: #fafaf8;     /* alternative light surface    */
+    --ed-bg-soft: #f1f0ec;     /* slightly warmer chapter      */
+    --ed-card: rgba(255, 255, 255, 0.5);
+    --ed-ink: #111111;         /* primary text                 */
+    --ed-ink-2: #747474;       /* secondary text               */
+    --ed-line: rgba(17, 17, 17, 0.12);
+    --ed-line-soft: rgba(17, 17, 17, 0.08);
+    --ed-dark: #101010;        /* dark chapter background      */
+    --ed-dark-2: #171717;
+    --ed-ink-on-dark: #f4f4f0;
+    --ed-ink-2-on-dark: #98978f;
+    --ed-line-on-dark: rgba(244, 244, 240, 0.14);
+    background: var(--ed-bg);
+    color: var(--ed-ink);
+  }
+  .dark .editorial {
+    --ed-bg: #131312;
+    --ed-surface: #171716;
+    --ed-bg-soft: #0f0f0e;
+    --ed-card: rgba(255, 255, 255, 0.04);
+    --ed-ink: #f4f4f0;
+    --ed-ink-2: #8f8f89;
+    --ed-line: rgba(244, 244, 240, 0.14);
+    --ed-line-soft: rgba(244, 244, 240, 0.09);
+  }
+
+  /* Consistent horizontal rhythm: clamp(24px, 4vw, 72px) */
+  .ed-px {
+    padding-inline: clamp(1.5rem, 4vw, 4.5rem);
+  }
+
+  /* Uppercase metadata label — “02 / SELECTED THEMES” */
+  .ed-label {
+    font-size: 0.6875rem; /* 11px */
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+
+  /* Oversized editorial display headline */
+  .ed-display {
+    font-family: var(--font-display), var(--font-sans), sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    line-height: 0.95;
+  }
+
+  /* Animated left→right underline for text links */
+  .ed-underline {
+    position: relative;
+  }
+  .ed-underline::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -3px;
+    height: 1px;
+    width: 100%;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .ed-underline:hover::after,
+  .ed-underline:focus-visible::after {
+    transform: scaleX(1);
   }
 }

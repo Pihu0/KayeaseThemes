@@ -28,7 +28,7 @@ export default function ScreenshotGallery({
         <img
           src={images[active]}
           alt={`Preview ${active + 1}`}
-          className="h-full w-full object-cover"
+          className="h-full w-full object-contain"
         />
       </div>
 
@@ -50,7 +50,7 @@ export default function ScreenshotGallery({
               <img
                 src={src}
                 alt={`Thumbnail ${i + 1}`}
-                className="h-full w-full object-cover"
+                className="h-full w-full object-contain"
               />
             </button>
           ))}
