@@ -185,7 +185,11 @@ export default function ArchiveExperience({
             }}
           />
 
-          <ArchiveHeader total={total || themes.length} themes={themes} />
+          <ArchiveHeader
+            total={total || themes.length}
+            themes={themes}
+            onExplore={scrollToGallery}
+          />
 
           <DiscoveryBar
             filters={filters}

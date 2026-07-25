@@ -63,6 +63,9 @@ export default function AdminLoginPage() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const reason = new URLSearchParams(window.location.search).get("reason");
+    // One-time read of the query string on mount (same pattern as AuthContext's
+    // localStorage restore); safe here because it runs once with an empty dep set.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (reason === "session") setSessionEnded(true);
   }, []);
 
@@ -102,7 +105,7 @@ export default function AdminLoginPage() {
   return (
     <main className="relative flex min-h-screen w-full flex-col bg-[#f5f4f0] lg:flex-row">
       {/* ─────────────────────────  LEFT · DARK BRAND  ───────────────────────── */}
-      <section className="relative flex shrink-0 flex-col overflow-hidden bg-[#0b0b0b] px-6 py-8 text-[#f4f3ef] sm:px-10 lg:h-screen lg:w-[59%] lg:px-14 lg:py-12">
+      <section className="relative flex shrink-0 flex-col overflow-hidden bg-[#0b0b0b] px-6 py-7 text-[#f4f3ef] sm:px-10 lg:h-screen lg:w-[59%] lg:px-14 lg:py-12">
         <Backdrop isDesktop={isDesktop} prefersReduced={!!prefersReduced} />
 
         {/* Top row: wordmark + back-to-website */}
@@ -111,7 +114,8 @@ export default function AdminLoginPage() {
             initial={prefersReduced ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, ease: EASE }}
-            className="font-[var(--font-display)] text-lg font-semibold tracking-tight"
+            style={{ fontFamily: "var(--font-display)" }}
+            className="text-lg font-semibold tracking-tight"
           >
             KAYEASE<sup className="top-[-0.5em] text-[0.5em]">®</sup>
           </motion.span>
@@ -126,11 +130,11 @@ export default function AdminLoginPage() {
         </div>
 
         {/* Centre statement */}
-        <div className="relative z-10 flex flex-1 flex-col justify-center py-12 lg:py-0">
+        <div className="relative z-10 flex flex-1 flex-col justify-center py-5 lg:py-0">
           <MaskedLines
             lines={["PRIVATE", "WORKSPACE."]}
             prefersReduced={!!prefersReduced}
-            className="ed-display text-[clamp(2.75rem,7vw,6.5rem)]"
+            className="ed-display text-[clamp(2.5rem,7vw,6.5rem)]"
           />
           <motion.p
             initial={prefersReduced ? false : { opacity: 0, y: 8 }}
@@ -147,7 +151,7 @@ export default function AdminLoginPage() {
           initial={prefersReduced ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, ease: EASE, delay: 0.5 }}
-          className="relative z-10 flex items-end justify-between gap-4"
+          className="relative z-10 hidden items-end justify-between gap-4 lg:flex"
         >
           <div className="ed-label leading-relaxed text-[#98978f]">
             <div className="text-[#f4f3ef]">
@@ -225,7 +229,6 @@ export default function AdminLoginPage() {
                   className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#8a8a86] transition-colors hover:text-[#111]"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                   aria-pressed={showPassword}
-                  tabIndex={-1}
                 >
                   {showPassword ? "Hide" : "Show"}
                 </button>
@@ -284,7 +287,7 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={submitting || success}
-              className="group relative flex h-[54px] w-full items-center justify-center overflow-hidden rounded-[10px] bg-[#111111] text-sm font-medium uppercase tracking-[0.18em] text-[#f5f4f0] transition-colors duration-300 hover:bg-[#232323] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#111] disabled:cursor-not-allowed"
+              className="group relative flex h-[54px] w-full items-center justify-center overflow-hidden rounded-[10px] bg-[#111111] text-sm font-medium uppercase tracking-[0.18em] text-[#f5f4f0] transition-colors duration-300 hover:bg-[#232323] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#111] disabled:cursor-not-allowed"
             >
               <span className="flex items-center gap-2">
                 {success
