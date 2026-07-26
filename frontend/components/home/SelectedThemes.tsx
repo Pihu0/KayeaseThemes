@@ -28,6 +28,12 @@ export default function SelectedThemes({ themes }: { themes: Theme[] }) {
   const slides = themes.slice(0, 4);
   const n = slides.length;
 
+  if (n === 0) return null;
+
+  return <SelectedThemesInner slides={slides} n={n} />;
+}
+
+function SelectedThemesInner({ slides, n }: { slides: Theme[]; n: number }) {
   const pinRef = useRef<HTMLElement>(null);
   const reduced = useReducedMotion();
   const pinned = useIsDesktop() && !reduced && n > 1;
@@ -43,8 +49,6 @@ export default function SelectedThemes({ themes }: { themes: Theme[] }) {
   useMotionValueEvent(scrollYProgress, "change", (p) =>
     setCurrent(Math.min(n, 1 + Math.round(p * (n - 1))))
   );
-
-  if (n === 0) return null;
 
   const layoutFor = (i: number) =>
     i === 1 ? SlideSplit : i === 2 ? SlideOverlap : SlideFullBleed;

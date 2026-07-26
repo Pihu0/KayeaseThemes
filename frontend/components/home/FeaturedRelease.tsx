@@ -16,6 +16,11 @@ import type { Theme } from "@/lib/types";
    words are few. */
 
 export default function FeaturedRelease({ theme }: { theme: Theme | null }) {
+  if (!theme) return null;
+  return <FeaturedReleaseInner theme={theme} />;
+}
+
+function FeaturedReleaseInner({ theme }: { theme: Theme }) {
   const ref = useRef<HTMLElement>(null);
   const reduced = useReducedMotion();
   const cursor = useProjectCursor("Explore");
@@ -27,8 +32,6 @@ export default function FeaturedRelease({ theme }: { theme: Theme | null }) {
   // settle-in + slow drift, both restrained
   const scale = useTransform(scrollYProgress, [0, 0.45], [1.12, 1]);
   const y = useTransform(scrollYProgress, [0, 1], ["-6%", "6%"]);
-
-  if (!theme) return null;
 
   return (
     <section
