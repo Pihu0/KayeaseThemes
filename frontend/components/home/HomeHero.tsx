@@ -1,38 +1,35 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
   motion,
-  useMotionValue,
   useReducedMotion,
   useScroll,
-  useSpring,
   useTransform,
   type MotionValue,
 } from "motion/react";
 import { EASE, useIsDesktop } from "@/lib/motion";
-import MaskedLines from "@/components/motion/MaskedLines";
-import { SectionLabel, EdButton, EdLink } from "@/components/home/editorial";
+import Magnetic from "@/components/motion/Magnetic";
+import TextRoll from "@/components/motion/TextRoll";
+import { SectionLabel } from "@/components/home/editorial";
 import { useProjectCursor } from "@/components/home/cursor";
 import type { Theme } from "@/lib/types";
 
-/* 01 — HERO
-   Communicates: “Kayease is a design studio; the themes are the proof.”
-   Eye order: eyebrow → oversized headline → three real theme previews.
-   On scroll (desktop) the copy retires, the side previews part toward the
-   edges and the centre preview expands to near-fullscreen — the hero
-   literally hands over to the Selected Themes chapter. */
+/* 01 — HERO  (peel-deck, inspired by the Legion/Ovo scroll interaction)
+   A giant headline marquee slides horizontally behind a centred deck of real
+   theme previews. On scroll through a pinned runway the front card lifts up
+   and off, peeling one at a time to reveal the next — until the base card
+   remains and the hero hands over to the Selected Themes chapter. */
 
 const EYEBROW = "Kayease® / Digital Theme Studio";
-const HEADLINE = ["Your next website", "shouldn't look familiar."];
-const SUBTITLE =
-  "Distinctive, production-ready themes crafted for brands that care about design, performance and every detail in between.";
+const MARQUEE = "Your Next Website Shouldn't Look Familiar";
+const TAGLINE =
+  "Distinctive, production-ready themes for brands that care about every detail.";
 
-// linear segment mapper for scrub maths: 0 before `a`, 1 after `b`
-const seg = (p: number, a: number, b: number) =>
-  Math.min(1, Math.max(0, (p - a) / (b - a)));
+// per-card resting tilt (front → back), so the deck reads as a hand-stacked pile
+const ROT = [0, 3.5, -4, -2, 2.5];
 
 export default function HomeHero({
   themes,
@@ -41,351 +38,244 @@ export default function HomeHero({
   themes: Theme[];
   total: number;
 }) {
-  const runwayRef = useRef<HTMLElement>(null);
-  const stageRef = useRef<HTMLDivElement>(null);
-  const centerBoxRef = useRef<HTMLDivElement>(null);
-
   const reduced = useReducedMotion();
   const desktop = useIsDesktop();
   const morphOn = desktop && !reduced;
 
-  /* ---- pointer parallax (desktop only): tiny drift + ≤1deg tilt ---- */
-  const pxRaw = useMotionValue(0);
-  const px = useSpring(pxRaw, { stiffness: 80, damping: 22 });
-  const onMouseMove = (e: React.MouseEvent) => {
-    if (!morphOn) return;
-    const r = stageRef.current?.getBoundingClientRect();
-    if (r) pxRaw.set(((e.clientX - r.left) / r.width) * 2 - 1); // -1..1
-  };
+  const deck = themes.filter((t): t is Theme => Boolean(t)).slice(0, 5);
 
-  /* ---- scroll morph ---- */
+  if (deck.length === 0) return null;
+
+  return <HeroRunway deck={deck} total={total} morphOn={morphOn} />;
+}
+
+/* Split out so useScroll can bind to the runway ref after the early return. */
+function HeroRunway({
+  deck,
+  total,
+  morphOn,
+}: {
+  deck: Theme[];
+  total: number;
+  morphOn: boolean;
+}) {
+  const runwayRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: runwayRef,
     offset: ["start start", "end end"],
   });
 
-  // Measured “cover the viewport” targets for the centre preview
-  const [cover, setCover] = useState({ scale: 1, x: 0, y: 0 });
-  useEffect(() => {
-    if (!morphOn) return;
-    const measure = () => {
-      const el = centerBoxRef.current;
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      // Only trust the measurement while the stage is at rest (progress ≈ 0)
-      if (scrollYProgress.get() > 0.02) return;
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
-      setCover({
-        // 0.96 → “nearly full viewport”, keeps a sliver of breathing room
-        scale: Math.max(vw / r.width, vh / r.height) * 0.96,
-        x: vw / 2 - (r.left + r.width / 2),
-        y: vh / 2 - (r.top + r.height / 2),
-      });
-    };
-    measure();
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, [morphOn, scrollYProgress]);
+  // marquee drifts a touch faster than the page as you scroll (parallax)
+  const marqueeX = useTransform(scrollYProgress, [0, 1], ["0%", "-14%"]);
 
-  // Copy retires first…
-  const copyY = useTransform(scrollYProgress, (p) => -90 * seg(p, 0, 0.3));
-  const copyOpacity = useTransform(scrollYProgress, (p) => 1 - seg(p, 0.02, 0.26));
-  // …sides part toward the edges…
-  const sideShift = useTransform(scrollYProgress, (p) => seg(p, 0.08, 0.5));
-  const sideOpacity = useTransform(scrollYProgress, (p) => 1 - seg(p, 0.18, 0.5));
-  // …centre expands to near-fullscreen.
-  const centerScale = useTransform(scrollYProgress, (p) =>
-    morphOn ? 1 + (cover.scale - 1) * seg(p, 0.28, 0.92) : 1
-  );
-  const centerX = useTransform(scrollYProgress, (p) => cover.x * seg(p, 0.28, 0.92));
-  const centerY = useTransform(scrollYProgress, (p) => cover.y * seg(p, 0.28, 0.92));
-  const centerRadius = useTransform(scrollYProgress, (p) => 18 - 12 * seg(p, 0.5, 0.9));
-  const centerMetaOpacity = useTransform(scrollYProgress, (p) => 1 - seg(p, 0.04, 0.18));
-  // Slide-01 style overlay fades in as the morph completes
-  const overlayOpacity = useTransform(scrollYProgress, (p) => seg(p, 0.86, 0.98));
-
-  const [left, center, right] = themes;
-  if (!center) return null;
+  const L = deck.length;
 
   return (
     <section
       ref={runwayRef}
       aria-label="Kayease Themes introduction"
-      className={morphOn ? "relative h-[220vh]" : "relative"}
+      className="relative"
+      style={morphOn ? { height: `${L * 100}vh` } : undefined}
     >
       <div
-        ref={stageRef}
-        onMouseMove={onMouseMove}
         className={
-          "flex flex-col overflow-clip pt-28 sm:pt-32 " +
-          (morphOn ? "sticky top-0 h-screen" : "min-h-svh")
+          "flex flex-col overflow-clip " +
+          (morphOn ? "sticky top-0 h-screen" : "min-h-svh py-32")
         }
       >
+        {/* ---- giant headline marquee, centred behind the deck ---- */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-1/2 z-0 -translate-y-1/2 overflow-hidden"
+        >
+          <motion.div style={morphOn ? { x: marqueeX } : undefined}>
+            <div className="ed-marquee-track flex w-max">
+              {[0, 1].map((half) => (
+                <span
+                  key={half}
+                  aria-hidden={half === 1}
+                  className="ed-display flex shrink-0 items-center whitespace-nowrap pr-[0.35em] text-[clamp(3.5rem,13.5vw,15rem)] leading-none text-(--ed-ink) opacity-[0.08]"
+                >
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <span key={i} className="pr-[0.35em]">
+                      {MARQUEE}
+                      <span className="px-[0.25em] align-middle text-[0.5em] opacity-70">
+                        ✳
+                      </span>
+                    </span>
+                  ))}
+                </span>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+
         {/* barely-visible atmospheric glow behind the composition */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-1/4 mx-auto h-[50vh] max-w-4xl rounded-full blur-3xl"
+          className="pointer-events-none absolute inset-x-0 top-1/2 mx-auto h-[55vh] max-w-4xl -translate-y-1/2 rounded-full blur-3xl"
           style={{
             background:
-              "radial-gradient(closest-side, rgba(180,180,180,0.10), transparent)",
+              "radial-gradient(closest-side, rgba(180,180,180,0.16), transparent)",
           }}
         />
 
-        {/* ---- copy ---- */}
-        <motion.div
-          style={morphOn ? { y: copyY, opacity: copyOpacity } : undefined}
-          className="ed-px relative z-10 mx-auto flex w-full max-w-[1760px] flex-col items-center text-center"
-        >
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.15, ease: EASE }}
-          >
-            <SectionLabel>{EYEBROW}</SectionLabel>
-          </motion.div>
-
-          <MaskedLines
-            as="h1"
-            mode="mount"
-            lines={HEADLINE}
-            delay={0.3}
-            className="ed-display mt-7 text-[clamp(2.5rem,6.6vw,7.75rem)]"
-          />
-
-          <motion.p
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.75, ease: EASE }}
-            className="mt-7 max-w-lg text-pretty text-[15px] leading-relaxed text-(--ed-ink-2) sm:text-base"
-          >
-            {SUBTITLE}
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.9, ease: EASE }}
-            className="mt-9 flex flex-wrap items-center justify-center gap-x-8 gap-y-4"
-          >
-            <EdButton href="/themes">Explore Themes</EdButton>
-            <EdLink href="/categories">View Collection</EdLink>
-          </motion.div>
-        </motion.div>
-
-        {/* ---- three real theme previews ---- */}
-        {morphOn ? (
-          <div className="relative z-0 mx-auto mt-16 flex w-full max-w-[1760px] flex-1 items-start justify-center gap-[clamp(1rem,2.5vw,2.5rem)]">
-            {left && (
-              <SidePreview theme={left} dir={-1} px={px} shift={sideShift} opacity={sideOpacity} delay={1.1} />
-            )}
-            <CenterPreview
-              theme={center}
-              total={total}
-              px={px}
-              boxRef={centerBoxRef}
-              scale={centerScale}
-              x={centerX}
-              y={centerY}
-              radius={centerRadius}
-              metaOpacity={centerMetaOpacity}
-            />
-            {right && (
-              <SidePreview theme={right} dir={1} px={px} shift={sideShift} opacity={sideOpacity} delay={1.2} />
-            )}
-          </div>
-        ) : (
-          /* Mobile / reduced motion: one dominant preview, the others peek in
-             a swipeable row — no pinning, no parallax. */
-          <div className="mt-12 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-10 scrollbar-none">
-            {[center, left, right].filter(Boolean).map((t, i) => (
-              <Link
-                key={t._id}
-                href={`/themes/${t.slug}`}
-                className="w-[78vw] max-w-105 shrink-0 snap-center"
-              >
-                <motion.div
-                  initial={{ opacity: 0, y: 40 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.9 + i * 0.12, ease: EASE }}
-                >
-                  <div className="relative aspect-25/31 overflow-hidden rounded-2xl ring-1 ring-(--ed-line-soft)">
-                    {t.image && (
-                      <Image
-                        src={t.image}
-                        alt={`${t.title} theme preview`}
-                        fill
-                        priority={i === 0}
-                        sizes="78vw"
-                        className="object-cover object-top"
-                      />
-                    )}
-                  </div>
-                  <PreviewMeta theme={t} index={i} total={total} />
-                </motion.div>
-              </Link>
+        {/* ---- the peel deck ---- */}
+        <div className="relative z-10 grid flex-1 place-items-center px-6">
+          <div className="grid place-items-center">
+            {deck.map((theme, i) => (
+              <DeckCard
+                key={theme._id}
+                theme={theme}
+                index={i}
+                count={L}
+                total={total}
+                morphOn={morphOn}
+                scrollYProgress={scrollYProgress}
+              />
             ))}
           </div>
-        )}
+        </div>
 
-        {/* Slide-01-style overlay — appears as the centre preview reaches
-            near-fullscreen, so the hero reads as “became the showcase”. */}
-        {morphOn && (
-          <motion.div
-            style={{ opacity: overlayOpacity }}
-            className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex items-end justify-between p-[clamp(1.5rem,4vw,4.5rem)]"
-          >
-            <div className="text-white [text-shadow:0_1px_24px_rgba(0,0,0,0.45)]">
-              <p className="ed-label opacity-80">01 / {Math.min(total, 4).toString().padStart(2, "0")}</p>
-              <p className="ed-display mt-2 text-3xl">{center.title}</p>
-              <p className="mt-1 text-xs uppercase tracking-[0.18em] opacity-80">
-                {center.category} / {center.framework}
-              </p>
-            </div>
-          </motion.div>
-        )}
+        {/* ---- copy + CTA, static at the foot of the frame ---- */}
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2, ease: EASE }}
+          className="relative z-20 mx-auto flex flex-col items-center gap-5 pb-[clamp(1.5rem,4vh,3.5rem)] text-center"
+        >
+          <SectionLabel>{EYEBROW}</SectionLabel>
+          <p className="max-w-md text-pretty text-[13.5px] leading-relaxed text-(--ed-ink-2) sm:text-sm">
+            {TAGLINE}
+          </p>
+          <DotButton href="/themes">Explore Themes</DotButton>
+        </motion.div>
       </div>
     </section>
   );
 }
 
-/* ---------- previews ---------- */
+/* ---------- one card in the deck ---------- */
 
-function PreviewMeta({
+function DeckCard({
   theme,
   index,
+  count,
   total,
-  className = "",
+  morphOn,
+  scrollYProgress,
 }: {
   theme: Theme;
   index: number;
+  count: number;
   total: number;
-  className?: string;
-}) {
-  return (
-    <div className={"mt-4 flex items-baseline justify-between " + className}>
-      <div>
-        <p className="text-sm font-medium uppercase tracking-[0.12em]">{theme.title}</p>
-        <p className="mt-0.5 text-xs text-(--ed-ink-2)">
-          {theme.category}
-          {theme.framework ? ` / ${theme.framework}` : ""}
-        </p>
-      </div>
-      <p className="text-[11px] tabular-nums text-(--ed-ink-2)">
-        {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
-      </p>
-    </div>
-  );
-}
-
-function CenterPreview({
-  theme,
-  total,
-  px,
-  boxRef,
-  scale,
-  x,
-  y,
-  radius,
-  metaOpacity,
-}: {
-  theme: Theme;
-  total: number;
-  px: MotionValue<number>;
-  boxRef: React.RefObject<HTMLDivElement | null>;
-  scale: MotionValue<number>;
-  x: MotionValue<number>;
-  y: MotionValue<number>;
-  radius: MotionValue<number>;
-  metaOpacity: MotionValue<number>;
+  morphOn: boolean;
+  scrollYProgress: MotionValue<number>;
 }) {
   const cursor = useProjectCursor("View");
-  // Centre moves least — depth comes from the difference vs the sides
-  const parallaxX = useTransform(px, [-1, 1], [-8, 8]);
-  const rotate = useTransform(px, [-1, 1], [0.6, -0.6]);
+  const isBase = index === count - 1;
 
-  return (
-    <motion.div style={{ x, y, scale }} className="relative z-10 w-[min(46vw,500px)] shrink-0 will-change-transform">
-      <motion.div style={{ x: parallaxX, rotate }}>
-        <motion.div
-          initial={{ opacity: 0, y: 120, scale: 0.94 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 1, delay: 0.95, ease: EASE }}
-        >
-          <Link href={`/themes/${theme.slug}`} {...cursor} className="block cursor-none">
-            <motion.div
-              ref={boxRef}
-              style={{ borderRadius: radius }}
-              className="relative aspect-25/31 overflow-hidden ring-1 ring-(--ed-line-soft)"
-            >
-              {theme.image && (
-                <Image
-                  src={theme.image}
-                  alt={`${theme.title} theme preview`}
-                  fill
-                  priority
-                  sizes="(max-width: 1024px) 78vw, 60vw"
-                  className="object-cover object-top"
-                />
-              )}
-            </motion.div>
-          </Link>
-          <motion.div style={{ opacity: metaOpacity }}>
-            <PreviewMeta theme={theme} index={0} total={total} />
-          </motion.div>
-        </motion.div>
-      </motion.div>
-    </motion.div>
+  // Each card owns the scroll slice [index/L, (index+1)/L]; the base never
+  // peels and holds through the final slice.
+  const start = index / count;
+  const end = (index + 1) / count;
+  const y = useTransform(
+    scrollYProgress,
+    [start, end],
+    ["0%", isBase ? "0%" : "-172%"]
   );
-}
+  // a hair of extra rotation as it lifts, so the peel feels physical
+  const liftRot = useTransform(
+    scrollYProgress,
+    [start, end],
+    [0, isBase ? 0 : (index % 2 === 0 ? -6 : 6)]
+  );
 
-function SidePreview({
-  theme,
-  dir,
-  px,
-  shift,
-  opacity,
-  delay,
-}: {
-  theme: Theme;
-  dir: -1 | 1;
-  px: MotionValue<number>;
-  shift: MotionValue<number>;
-  opacity: MotionValue<number>;
-  delay: number;
-}) {
-  const cursor = useProjectCursor("View");
-  // Sides drift more than the centre (max 16px) + part toward the edges on scroll
-  const parallaxX = useTransform(px, [-1, 1], [-16, 16]);
-  const rotate = useTransform(px, [-1, 1], [1.2 * dir, -1.2 * dir]);
-  const scrollX = useTransform(shift, (v) => v * dir * 420);
+  const rot = ROT[index % ROT.length];
 
   return (
     <motion.div
-      style={{ x: scrollX, opacity }}
-      className="relative z-0 mt-14 w-[min(27vw,380px)] shrink-0 will-change-transform"
+      style={{
+        gridColumnStart: 1,
+        gridRowStart: 1,
+        zIndex: count - index,
+        ...(morphOn ? { y } : {}),
+      }}
+      className="will-change-transform"
     >
-      <motion.div style={{ x: parallaxX, rotate }}>
-        <motion.div
-          initial={{ opacity: 0, y: 120, scale: 0.94 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 1, delay, ease: EASE }}
-        >
-          <Link href={`/themes/${theme.slug}`} {...cursor} className="block cursor-none">
-            <div className="relative aspect-19/24 overflow-hidden rounded-[18px] ring-1 ring-(--ed-line-soft)">
-              {theme.image && (
-                <Image
-                  src={theme.image}
-                  alt={`${theme.title} theme preview`}
-                  fill
-                  sizes="27vw"
-                  className="object-cover object-top"
-                />
-              )}
-            </div>
-          </Link>
+      <motion.div
+        initial={{ opacity: 0, y: 70, scale: 0.9 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{
+          duration: 0.9,
+          delay: 0.35 + (count - 1 - index) * 0.09,
+          ease: EASE,
+        }}
+      >
+        <motion.div style={morphOn ? { rotate: liftRot } : { rotate: rot }}>
+          <div style={morphOn ? { rotate: `${rot}deg` } : undefined}>
+            <Link
+              href={`/themes/${theme.slug}`}
+              {...(morphOn ? cursor : {})}
+              className={
+                "block w-[clamp(280px,44vw,660px)] " +
+                (morphOn ? "cursor-none" : "")
+              }
+            >
+              <div className="group relative aspect-3/2 overflow-hidden rounded-2xl bg-(--ed-bg-soft) shadow-[0_40px_80px_-30px_rgba(17,17,17,0.45)] ring-1 ring-(--ed-line-soft)">
+                {theme.image && (
+                  <Image
+                    src={theme.image}
+                    alt={`${theme.title} theme preview`}
+                    fill
+                    priority={index <= 1}
+                    sizes="(max-width: 1024px) 88vw, 44vw"
+                    className="object-cover object-top transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                  />
+                )}
+                {/* caption chip, bottom-left */}
+                <div className="absolute inset-x-0 bottom-0 flex items-end justify-between bg-linear-to-t from-black/45 to-transparent p-4 text-white sm:p-5">
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-[0.14em] sm:text-sm">
+                      {theme.title}
+                    </p>
+                    <p className="mt-0.5 text-[10px] uppercase tracking-[0.16em] opacity-80 sm:text-[11px]">
+                      {theme.category}
+                      {theme.framework ? ` / ${theme.framework}` : ""}
+                    </p>
+                  </div>
+                  <p className="text-[10px] tabular-nums opacity-80 sm:text-[11px]">
+                    {String(index + 1).padStart(2, "0")} /{" "}
+                    {String(total).padStart(2, "0")}
+                  </p>
+                </div>
+              </div>
+            </Link>
+          </div>
         </motion.div>
       </motion.div>
     </motion.div>
+  );
+}
+
+/* ---------- CTA pill with an accent dot (Ovo-style “● Learn More”) ---------- */
+
+function DotButton({
+  href,
+  children,
+}: {
+  href: string;
+  children: string;
+}) {
+  return (
+    <Magnetic className="inline-block">
+      <Link
+        href={href}
+        className="group inline-flex h-12 items-center gap-2.5 rounded-full bg-(--ed-ink) pl-5 pr-6 text-[13px] font-medium uppercase tracking-[0.14em] text-(--ed-bg) transition-colors duration-300 hover:bg-black dark:hover:bg-white"
+      >
+        <span className="size-2 rounded-full bg-brand transition-transform duration-300 group-hover:scale-125" />
+        <TextRoll>{children}</TextRoll>
+      </Link>
+    </Magnetic>
   );
 }

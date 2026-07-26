@@ -278,4 +278,22 @@
   .ed-underline:focus-visible::after {
     transform: scaleX(1);
   }
+
+}
+
+/* Hero peel-deck marquee — the giant headline sliding behind the cards.
+   The track holds two identical halves; translating -50% loops seamlessly.
+   Kept at top level (unlayered) so the animation always wins. */
+@keyframes ed-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.ed-marquee-track {
+  animation: ed-marquee 42s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ed-marquee-track {
+    animation: none;
+  }
 }

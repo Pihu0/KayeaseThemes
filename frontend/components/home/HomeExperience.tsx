@@ -60,10 +60,8 @@ export default function HomeExperience({
       ...themes.filter((t) => !t.featured),
     ];
     const selected = featuredFirst.slice(0, 4);
-    // hero: centre = strongest, sides = next two
-    const heroThemes = [selected[1], selected[0], selected[2]].filter(
-      (t): t is Theme => Boolean(t)
-    );
+    // hero peel-deck: strongest work on top, peeling to reveal the rest
+    const heroDeck = featuredFirst.slice(0, 5);
 
     const entries: IndustryEntry[] = categories
       .map((category) => {
@@ -81,7 +79,7 @@ export default function HomeExperience({
 
     return {
       selected,
-      heroThemes,
+      heroDeck,
       entries,
       newest: themes[0] ?? null, // API returns newest-first
       stats: {
@@ -108,7 +106,7 @@ export default function HomeExperience({
             }}
           />
 
-          <HomeHero themes={derived.heroThemes} total={derived.stats.themes} />
+          <HomeHero themes={derived.heroDeck} total={derived.stats.themes} />
           <SelectedThemes themes={derived.selected} />
           <BrandStatement />
           <DetailsShowcase themes={derived.selected} />
