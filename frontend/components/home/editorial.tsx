@@ -51,15 +51,18 @@ export function EdButton({
       <Link
         href={href}
         className={cn(
-          "group inline-flex h-12 items-center gap-2.5 px-6 text-[13px] font-medium uppercase tracking-[0.14em] transition-colors duration-300",
+          "group relative inline-flex h-12 items-center justify-center gap-2.5 overflow-hidden rounded-xl px-6 text-[13px] font-medium uppercase tracking-[0.14em] transition-all duration-300 border border-black/10 dark:border-white/10 outline-none select-none",
           invert
-            ? "bg-(--ed-ink-on-dark) text-(--ed-dark) hover:bg-white"
-            : "bg-(--ed-ink) text-(--ed-bg) hover:bg-black dark:hover:bg-white",
+            ? "bg-white text-black hover:border-purple-600 dark:bg-neutral-900 dark:text-white"
+            : "bg-white text-black hover:border-purple-600 dark:bg-neutral-900 dark:text-white",
           className
         )}
       >
-        <TextRoll>{children}</TextRoll>
-        <ArrowUpRight className="size-4 transition-transform duration-300 ease-out group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+        <span className="w-56 h-56 rounded rotate-[-40deg] bg-purple-600 absolute bottom-0 left-0 -translate-x-full ease-out duration-500 transition-all translate-y-full mb-9 ml-9 group-hover:ml-0 group-hover:mb-32 group-hover:translate-x-0 pointer-events-none" />
+        <span className="relative z-10 flex items-center gap-2.5 text-black dark:text-white transition-colors duration-300 ease-in-out group-hover:text-white">
+          <TextRoll>{children}</TextRoll>
+          <ArrowUpRight className="size-4 transition-transform duration-300 ease-out group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+        </span>
       </Link>
     </Magnetic>
   );
@@ -116,7 +119,7 @@ export function CircleButton({
       onClick={onClick}
       aria-label={label}
       className={cn(
-        "group flex size-11 items-center justify-center rounded-full border transition-colors duration-300",
+        "group flex size-11 items-center justify-center rounded-xl border transition-colors duration-300",
         onDark
           ? "border-(--ed-line-on-dark) text-(--ed-ink-on-dark) hover:bg-(--ed-ink-on-dark) hover:text-(--ed-dark)"
           : "border-(--ed-line) text-(--ed-ink) hover:bg-(--ed-ink) hover:text-(--ed-bg)",

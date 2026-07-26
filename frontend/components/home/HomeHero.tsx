@@ -161,6 +161,27 @@ function HeroRunway({
   const L = deck.length;
   const skipIntro = reduced || introPlayed;
 
+  /* The intro loader and the pinned peel-deck are authored assuming the hero
+     starts at the very top. A browser back/refresh restores the previous
+     scroll position, so if the intro replays from there the front card is
+     stuck mid-zoom and overlaps the copy. Take over scroll restoration and
+     snap to the top before the intro runs so it always starts from scratch. */
+  useEffect(() => {
+    if (skipIntro) return;
+    const prev = window.history.scrollRestoration;
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+    window.scrollTo(0, 0);
+    return () => {
+      if ("scrollRestoration" in window.history) {
+        window.history.scrollRestoration = prev;
+      }
+    };
+    // run once on mount; skipIntro is stable for the life of this component
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   /* ---- intro state machine: loading → exiting → done ---- */
   const [phase, setPhase] = useState<"loading" | "exiting" | "done">(
     skipIntro ? "done" : "loading"
@@ -511,14 +532,9 @@ function HeroRunway({
                     {active.title.split("").map((char, idx) => (
                       <motion.span
                         key={`${active._id}-${idx}`}
-                        initial={{ opacity: 0, y: 16, scale: 0.94 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        transition={{
-                          type: "spring",
-                          stiffness: 280,
-                          damping: 24,
-                          delay: idx * 0.015,
-                        }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.18, ease: "easeOut" }}
                         className="inline-block"
                       >
                         {char === " " ? "\u00A0" : char}
@@ -649,11 +665,16 @@ function HeroRunway({
         {/* ---- the peel deck — centred during the intro, then slides right ---- */}
         <motion.div
           initial={false}
-          animate={
-            morphOn
-              ? { x: settled ? "21%" : "0%", scale: settled ? 0.90 : 1 }
-              : undefined
-          }
+          /* Always a defined target (never undefined) so the settled offset is
+             delivered as a real prop change. When the intro is skipped, `settled`
+             is true from the first render and only `morphOn` flips false→true
+             after mount; if this were gated to `undefined` while non-morph,
+             Framer would skip applying the +21% and the deck would overlap the
+             copy (seen after a browser back-nav). */
+          animate={{
+            x: morphOn && settled ? "21%" : "0%",
+            scale: morphOn && settled ? 0.9 : 1,
+          }}
           transition={{ duration: 1, ease: EASE, delay: skipIntro ? 0 : 0.15 }}
           className={
             morphOn

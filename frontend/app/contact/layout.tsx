@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Start a Conversation",
+  title: "Custom Design",
   description:
-    "Have a question about a theme, need support, or planning something custom? Tell us what you're thinking — we'll take it from here.",
+    "Tell us your vision and we'll design a custom theme tailored to your brand — unique, production-ready and built to convert.",
   alternates: { canonical: "/contact" },
 };
 

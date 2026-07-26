@@ -5,36 +5,56 @@ import Lenis from "lenis";
 import {
   MotionConfig,
   motion,
-  useMotionValue,
   useReducedMotion,
-  useSpring,
 } from "motion/react";
-import { ArrowDown } from "lucide-react";
-import { EASE, useIsDesktop } from "@/lib/motion";
+import {
+  ArrowDown,
+  Palette,
+  MessageSquare,
+  Rocket,
+  ArrowUpRight,
+} from "lucide-react";
+import { EASE } from "@/lib/motion";
 import MaskedLines from "@/components/motion/MaskedLines";
+import { AnimatedButton } from "@/components/ui/animated-button";
 import { SectionLabel } from "@/components/home/editorial";
-import type { Theme } from "@/lib/types";
-import { INTENTS, type IntentId } from "./intents";
-import IntentSelector from "./IntentSelector";
 import ContactForm from "./ContactForm";
-import DirectContact from "./DirectContact";
-import ContactFAQ from "./ContactFAQ";
-import ClosingSection from "./ClosingSection";
 
-/* /contact — "Start a conversation".
-   The quietest page on the site: an editorial hero, an intent selector that
-   tailors the form, the form itself on lines (not a card), direct email, a
-   grounded FAQ, and a dark closing. Same shell as the homepage / categories /
-   archive — Lenis smooth scroll, film grain, one motion language — so it
-   belongs to the system rather than looking bolted on. */
+/* /contact — "Custom Design" page.
+   A premium, single-purpose page for custom design requests.
+   Utilizes the site's native editorial typography (ed-display, ed-label, MaskedLines)
+   and smooth motion language. */
 
-export default function ContactExperience({ themes }: { themes: Theme[] }) {
+const PROCESS_STEPS = [
+  {
+    n: "01",
+    icon: MessageSquare,
+    title: "Share Your Vision",
+    description:
+      "Tell us about your brand, audience, and features. The more context you provide, the better the final output.",
+  },
+  {
+    n: "02",
+    icon: Palette,
+    title: "We Design & Refine",
+    description:
+      "Our team crafts a custom theme tailored to your brand identity. We iterate until every detail is pixel-perfect.",
+  },
+  {
+    n: "03",
+    icon: Rocket,
+    title: "Launch Your Site",
+    description:
+      "Receive production-ready, fully responsive code built on Next.js, React & Tailwind CSS — ready to deploy.",
+  },
+];
+
+export default function ContactExperience() {
   const reduced = useReducedMotion();
-  const desktop = useIsDesktop();
-  const [intent, setIntent] = useState<IntentId | null>(null);
   const formRef = useRef<HTMLDivElement>(null);
+  const [activeStep, setActiveStep] = useState<number | null>(null);
 
-  // Shared Lenis setup (matches the other editorial pages).
+  // Lenis smooth scroll setup
   useEffect(() => {
     if (reduced) return;
     const lenis = new Lenis({ lerp: 0.115 });
@@ -48,32 +68,10 @@ export default function ContactExperience({ themes }: { themes: Theme[] }) {
     };
   }, [reduced]);
 
-  // Faint cursor light behind the hero type (§08) — desktop, non-reduced only.
-  const lightEnabled = desktop && !reduced;
-  const lx = useSpring(useMotionValue(0), { stiffness: 40, damping: 20 });
-  const ly = useSpring(useMotionValue(0), { stiffness: 40, damping: 20 });
-
-  const activeIntent = INTENTS.find((i) => i.id === intent) ?? null;
-
-  const choose = (id: IntentId) => {
-    const first = intent === null;
-    setIntent(id);
-    // On the first choice, bring the form into view.
-    if (first) {
-      requestAnimationFrame(() =>
-        formRef.current?.scrollIntoView({
-          behavior: reduced ? "auto" : "smooth",
-          block: "start",
-        })
-      );
-    }
-  };
-
   return (
     <MotionConfig reducedMotion="user">
-      <div className="editorial relative overflow-x-clip">
-        <div aria-hidden className="fixed inset-0 -z-10 bg-(--ed-bg)" />
-        {/* the same near-invisible film grain as the rest of the site */}
+      <div className="editorial relative overflow-x-clip bg-(--ed-surface) text-(--ed-ink) transition-colors duration-300 dark:bg-(--ed-dark) dark:text-(--ed-ink-on-dark)">
+        {/* background grain */}
         <div
           aria-hidden
           className="pointer-events-none fixed inset-0 z-70 opacity-[0.022]"
@@ -82,150 +80,163 @@ export default function ContactExperience({ themes }: { themes: Theme[] }) {
           }}
         />
 
-        {/* ---- 02 HERO ---- */}
-        <header
-          onMouseMove={
-            lightEnabled
-              ? (e) => {
-                  // coordinates relative to the header, so the light tracks the
-                  // cursor accurately regardless of scroll position
-                  const r = e.currentTarget.getBoundingClientRect();
-                  lx.set(e.clientX - r.left);
-                  ly.set(e.clientY - r.top);
-                }
-              : undefined
-          }
-          className="ed-px relative mx-auto flex min-h-[78vh] w-full max-w-[1760px] flex-col justify-center pt-[clamp(9rem,15vw,14rem)] pb-[clamp(3rem,6vw,6rem)]"
-        >
-          {lightEnabled && (
-            <motion.div
-              aria-hidden
-              style={{ left: lx, top: ly }}
-              className="pointer-events-none absolute z-0 size-105 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-[0.5]"
-            >
-              <div className="size-full rounded-full bg-[radial-gradient(circle,var(--brand-soft),transparent_65%)]" />
-            </motion.div>
-          )}
+        {/* ──── HERO ──── */}
+        <header className="ed-px relative mx-auto flex min-h-[75vh] w-full max-w-[1760px] flex-col justify-center pt-[clamp(8rem,14vw,12rem)] pb-[clamp(3rem,6vw,5rem)]">
+          <SectionLabel>Custom Design / Kayease®</SectionLabel>
 
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: EASE }}
-            className="ed-label relative text-(--ed-ink-2)"
-          >
-            Contact / Kayease®
-          </motion.p>
-
-          <div className="relative mt-8 grid gap-10 lg:mt-10 lg:grid-cols-12 lg:items-end">
+          <div className="relative mt-8 grid gap-10 lg:mt-12 lg:grid-cols-12 lg:items-end">
             <MaskedLines
               as="h1"
               mode="mount"
-              delay={0.12}
-              lines={["Let's start", "a conversation."]}
-              className="ed-display text-[clamp(3.25rem,8vw,9rem)] leading-[0.9] lg:col-span-8"
+              delay={0.1}
+              lines={["A website crafted", "around your brand."]}
+              className="ed-display text-[clamp(2.75rem,7vw,7.5rem)] leading-[0.95] lg:col-span-8"
             />
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.5, ease: EASE }}
+              transition={{ duration: 0.8, delay: 0.4, ease: EASE }}
               className="lg:col-span-4 lg:justify-self-end lg:text-right"
             >
-              <p className="max-w-xs text-[15px] leading-relaxed text-(--ed-ink-2) lg:ml-auto">
-                Whether you&apos;re looking for the right theme, need a little
-                help, or have something completely custom in mind — we&apos;d
-                love to hear about it.
+              <p className="max-w-sm text-[15px] leading-relaxed text-(--ed-ink-2) dark:text-(--ed-ink-2-on-dark) lg:ml-auto">
+                From concept to production-ready code — tell us your vision and
+                we&apos;ll design a custom theme that&apos;s uniquely yours.
               </p>
-              <button
-                type="button"
-                onClick={() =>
-                  formRef.current?.scrollIntoView({
-                    behavior: reduced ? "auto" : "smooth",
-                  })
-                }
-                className="group mt-8 inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.18em] text-(--ed-ink)"
-              >
-                <span className="ed-underline">Start below</span>
-                <ArrowDown className="size-3.5 transition-transform duration-300 group-hover:translate-y-0.5" />
-              </button>
+              <div className="mt-8 flex flex-wrap items-center gap-6 lg:justify-end">
+                <AnimatedButton
+                  onClick={() =>
+                    formRef.current?.scrollIntoView({
+                      behavior: reduced ? "auto" : "smooth",
+                    })
+                  }
+                  icon={<ArrowDown className="size-4" />}
+                >
+                  Start your project
+                </AnimatedButton>
+              </div>
             </motion.div>
           </div>
         </header>
 
-        {/* ---- 03 INTENT SELECTOR ---- */}
+        {/* ──── PROCESS STEPS ──── */}
         <section
-          aria-label="What can we help with?"
-          className="ed-px mx-auto w-full max-w-[1760px] pt-[clamp(3rem,6vw,5rem)]"
+          aria-label="How it works"
+          className="ed-px mx-auto w-full max-w-[1760px] pt-[clamp(4rem,7vw,7rem)] pb-[clamp(3rem,6vw,5rem)]"
         >
           <div className="mb-10 lg:mb-14">
-            <SectionLabel>01 / Your enquiry</SectionLabel>
+            <SectionLabel>01 / How it works</SectionLabel>
             <MaskedLines
               as="h2"
-              lines={["What can we", "help with?"]}
+              lines={["Three steps to", "your dream site."]}
               className="ed-display mt-6 text-[clamp(2.25rem,5vw,4.5rem)]"
             />
           </div>
-          <IntentSelector selected={intent} onSelect={choose} />
+
+          <div className="grid gap-6 md:grid-cols-3">
+            {PROCESS_STEPS.map((step, i) => {
+              const Icon = step.icon;
+              const isHovered = activeStep === i;
+              return (
+                <motion.div
+                  key={step.n}
+                  initial={{ opacity: 0, y: 28 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-6% 0px" }}
+                  transition={{ duration: 0.6, delay: i * 0.1, ease: EASE }}
+                  onMouseEnter={() => setActiveStep(i)}
+                  onMouseLeave={() => setActiveStep(null)}
+                  className="group relative overflow-hidden border border-(--ed-line-soft) bg-(--ed-bg-soft) p-8 transition-all duration-500 hover:border-(--ed-ink)/30 dark:border-white/10 dark:bg-white/[0.02]"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="ed-label text-(--ed-ink-2) dark:text-(--ed-ink-2-on-dark)">
+                      {step.n}
+                    </span>
+                    <Icon className="size-5 text-(--ed-ink-2) transition-colors duration-300 group-hover:text-(--ed-ink) dark:text-(--ed-ink-2-on-dark) dark:group-hover:text-white" />
+                  </div>
+
+                  <h3 className="ed-display mt-8 text-[clamp(1.25rem,2.2vw,1.75rem)] text-(--ed-ink) dark:text-(--ed-ink-on-dark)">
+                    {step.title}
+                  </h3>
+                  <p className="mt-3 text-[14px] leading-relaxed text-(--ed-ink-2) dark:text-(--ed-ink-2-on-dark)">
+                    {step.description}
+                  </p>
+
+                  {/* signature line underline on hover */}
+                  <motion.div
+                    className="absolute bottom-0 left-0 h-0.5 w-full bg-(--ed-ink) dark:bg-white"
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: isHovered ? 1 : 0 }}
+                    transition={{ duration: 0.4, ease: EASE }}
+                    style={{ originX: 0 }}
+                  />
+                </motion.div>
+              );
+            })}
+          </div>
         </section>
 
-        {/* ---- 04 FORM ---- */}
+        {/* ──── FORM SECTION ──── */}
         <section
           ref={formRef}
-          aria-label="Tell us more"
-          className="ed-px mx-auto w-full max-w-[1760px] scroll-mt-28 pt-[clamp(5rem,9vw,8.5rem)]"
+          aria-label="Custom design enquiry"
+          className="ed-px mx-auto w-full max-w-[1760px] scroll-mt-28 pt-[clamp(4rem,7vw,7rem)] pb-[clamp(5rem,9vw,9rem)]"
         >
-          <div className="lg:grid lg:grid-cols-12 lg:gap-10">
+          <div className="border-t border-(--ed-line) pt-14 lg:grid lg:grid-cols-12 lg:gap-10">
             <div className="lg:col-span-4">
-              <SectionLabel>02 / Tell us a little more</SectionLabel>
+              <SectionLabel>02 / Tell us your vision</SectionLabel>
               <MaskedLines
                 as="h2"
                 lines={["A few details", "and we're there."]}
-                className="ed-display mt-6 text-[clamp(2rem,4vw,3.5rem)]"
+                className="ed-display mt-6 text-[clamp(2rem,4.5vw,3.75rem)]"
               />
-              {activeIntent && (
-                <motion.p
-                  key={activeIntent.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, ease: EASE }}
-                  className="mt-6 max-w-xs text-[14px] leading-relaxed text-(--ed-ink-2)"
-                >
-                  {activeIntent.summary}
-                </motion.p>
-              )}
+              <p className="mt-6 max-w-xs text-[14px] leading-relaxed text-(--ed-ink-2) dark:text-(--ed-ink-2-on-dark)">
+                Fill in what you can — even a rough idea helps. We&apos;ll
+                follow up with a proposal and clear timeline.
+              </p>
+
+              {/* editorial trust points */}
+              <div className="mt-10 hidden space-y-4 lg:block">
+                {[
+                  "Response within 24 hours",
+                  "No commitment until scope is agreed",
+                  "Transparent pricing & deliverables",
+                ].map((item) => (
+                  <div key={item} className="flex items-center gap-3">
+                    <span className="block size-1.5 rounded-full bg-(--ed-ink) dark:bg-white" />
+                    <span className="text-[13px] uppercase tracking-[0.1em] text-(--ed-ink-2) dark:text-(--ed-ink-2-on-dark)">
+                      {item}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="mt-12 lg:col-span-7 lg:col-start-6 lg:mt-0">
-              {activeIntent ? (
-                <ContactForm intent={activeIntent} themes={themes} />
-              ) : (
-                <motion.button
-                  type="button"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  onClick={() => setIntent("other")}
-                  className="w-full border-y border-(--ed-line) py-16 text-left"
-                >
-                  <p className="ed-display text-[clamp(1.25rem,2.4vw,1.85rem)] text-(--ed-ink)/70">
-                    Pick what you&apos;re here for above —
-                    <br className="hidden sm:block" /> or just start writing.
-                  </p>
-                  <span className="ed-underline mt-5 inline-block text-[13px] font-medium uppercase tracking-[0.14em] text-(--ed-ink-2)">
-                    Start a general message
-                  </span>
-                </motion.button>
-              )}
+              <ContactForm />
             </div>
           </div>
         </section>
 
-        {/* ---- 05 DIRECT CONTACT ---- */}
-        <DirectContact />
-
-        {/* ---- 06 FAQ ---- */}
-        <ContactFAQ />
-
-        {/* ---- 07 CLOSING (dark) ---- */}
-        <ClosingSection themes={themes} />
+        {/* ──── CLOSING DIRECT EMAIL ──── */}
+        <section className="border-t border-(--ed-line) bg-[#101010] text-[#f4f4f0]">
+          <div className="ed-px mx-auto flex max-w-[1760px] flex-col items-start justify-between gap-6 py-16 sm:flex-row sm:items-center">
+            <div>
+              <SectionLabel onDark>Prefer Direct Email?</SectionLabel>
+              <p className="mt-2 text-[14px] text-[#98978f]">
+                Reach out straight to our team inbox.
+              </p>
+            </div>
+            <a
+              href="mailto:team@kayease.com"
+              className="ed-underline group inline-flex items-center gap-2 text-[#f4f4f0]"
+            >
+              <span className="ed-display text-[clamp(1.25rem,2.5vw,2rem)] normal-case">
+                team@kayease.com
+              </span>
+              <ArrowUpRight className="size-5 transition-transform duration-300 ease-out group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+            </a>
+          </div>
+        </section>
       </div>
     </MotionConfig>
   );

@@ -72,7 +72,7 @@ export default function WhatWeDo() {
   return (
     <section
       aria-label="What we do"
-      className="relative w-full overflow-x-clip bg-black py-24 sm:py-32"
+      className="relative w-full overflow-x-clip bg-(--ed-surface) py-24 transition-colors duration-300 sm:py-32 dark:bg-black"
     >
       <h2
         style={{ fontFamily: "var(--font-heading)" }}
@@ -80,7 +80,7 @@ export default function WhatWeDo() {
       >
         What We Do
       </h2>
-      <p className="mx-auto mt-5 max-w-xl px-6 text-center text-base leading-relaxed text-white/60 sm:text-lg">
+      <p className="mx-auto mt-5 max-w-xl px-6 text-center text-base leading-relaxed text-(--ed-ink-2) sm:text-lg dark:text-white/60">
         Everything we build helps businesses and developers launch beautiful,
         functional websites faster.
       </p>

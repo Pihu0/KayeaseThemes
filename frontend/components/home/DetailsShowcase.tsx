@@ -13,7 +13,7 @@ import {
 } from "motion/react";
 import { EASE, EASE_SOFT, DUR, useIsDesktop } from "@/lib/motion";
 import MaskedLines from "@/components/motion/MaskedLines";
-import { SectionLabel, EdLink } from "@/components/home/editorial";
+import { SectionLabel } from "@/components/home/editorial";
 import type { Theme } from "@/lib/types";
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -74,7 +74,6 @@ export default function DetailsShowcase({ themes }: { themes: Theme[] }) {
       <ChapterNavigation theme={navTheme} />
       <ChapterInteraction theme={interactionTheme} />
       <ChapterMotion theme={motionTheme} />
-      <SectionClosing />
     </section>
   );
 }
@@ -904,53 +903,6 @@ function ChapterMotion({ theme }: { theme: Theme }) {
           </svg>
         </button>
       </div>
-    </div>
-  );
-}
-
-// ── section closing ────────────────────────────────────────────────
-
-function SectionClosing() {
-  return (
-    <div className="ed-px mx-auto max-w-[1760px] py-28 text-center sm:py-40">
-      <motion.p
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6, ease: EASE }}
-        className="ed-label text-(--ed-ink-2) dark:text-(--ed-ink-2-on-dark)"
-      >
-        Built into every theme
-      </motion.p>
-
-      <MaskedLines
-        as="h3"
-        lines={["Not just", "how it looks.", "How it feels."]}
-        className="ed-display mx-auto mt-8 text-center text-[clamp(2.4rem,5.5vw,6.25rem)]"
-      />
-
-      <motion.p
-        initial={{ opacity: 0, y: 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-10% 0px" }}
-        transition={{ duration: 0.8, delay: 0.3, ease: EASE }}
-        className="mx-auto mt-10 max-w-md text-[15px] leading-relaxed text-(--ed-ink-2) dark:text-(--ed-ink-2-on-dark)"
-      >
-        Responsive layouts, purposeful interactions and motion — considered as
-        one experience.
-      </motion.p>
-
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6, delay: 0.5, ease: EASE }}
-        className="mt-10"
-      >
-        <EdLink href="/themes">
-          Explore All Themes
-        </EdLink>
-      </motion.div>
     </div>
   );
 }

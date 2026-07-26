@@ -29,10 +29,10 @@ export default function NotFound() {
           Back to home
         </Link>
         <Link
-          href="/categories"
+          href="/themes"
           className={cn(buttonVariants({ variant: "outline" }))}
         >
-          Browse categories
+          Browse themes
         </Link>
       </div>
     </main>

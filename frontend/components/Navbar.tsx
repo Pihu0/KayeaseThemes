@@ -14,7 +14,6 @@ import { cn } from "@/lib/utils";
 
 const navLinks = [
   { href: "/themes", label: "Themes" },
-  { href: "/categories", label: "Categories" },
 ];
 
 export default function Navbar() {
@@ -103,7 +102,7 @@ export default function Navbar() {
             href="/contact"
             className="group hidden items-center gap-1 text-[12px] font-medium uppercase tracking-[0.18em] text-foreground md:inline-flex"
           >
-            <span className="ed-underline">Contact</span>
+            <span className="ed-underline">Custom Design</span>
             <ArrowUpRight className="size-3.5 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
           </Link>
 
@@ -125,7 +124,7 @@ export default function Navbar() {
       {menuOpen && (
         <div className="relative border-b bg-background/95 backdrop-blur-xl md:hidden">
           <div className="flex flex-col gap-1 px-6 py-4">
-            {[...navLinks, { href: "/contact", label: "Contact" }].map((l) => (
+            {[...navLinks, { href: "/contact", label: "Custom Design" }].map((l) => (
               <Link
                 key={l.href}
                 href={l.href}

@@ -5,15 +5,12 @@ import Lenis from "lenis";
 import { MotionConfig, useReducedMotion } from "motion/react";
 import { CursorProvider } from "@/components/home/cursor";
 import HomeHero from "@/components/home/HomeHero";
-import SelectedThemes from "@/components/home/SelectedThemes";
+
 import BrandStatement from "@/components/home/BrandStatement";
-import DetailsShowcase from "@/components/home/DetailsShowcase";
 import WhatWeDo from "@/components/home/WhatWeDo";
-import IndustryExplorer, { type IndustryEntry } from "@/components/home/IndustryExplorer";
-import FeaturedRelease from "@/components/home/FeaturedRelease";
+import type { IndustryEntry } from "@/components/home/IndustryExplorer";
 import WhyKayease from "@/components/home/WhyKayease";
-import Testimonial from "@/components/home/Testimonial";
-import FinalCTA from "@/components/home/FinalCTA";
+
 import type { Theme, Category } from "@/lib/types";
 
 /* The homepage experience shell: smooth scrolling (Lenis), the film-grain
@@ -107,15 +104,11 @@ export default function HomeExperience({
           />
 
           <HomeHero themes={derived.heroDeck} total={derived.stats.themes} />
-          <SelectedThemes themes={derived.selected} />
+
           <BrandStatement />
-          <DetailsShowcase themes={derived.selected} />
           <WhatWeDo />
-          <IndustryExplorer entries={derived.entries} />
-          <FeaturedRelease theme={derived.newest} />
           <WhyKayease stats={derived.stats} />
-          <Testimonial />
-          <FinalCTA themes={themes.slice(0, 5)} />
+
         </div>
       </CursorProvider>
     </MotionConfig>

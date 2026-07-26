@@ -94,10 +94,10 @@ export default function BrandStatement() {
     <section
       ref={ref}
       aria-label="Our approach"
-      className="relative bg-(--ed-dark) py-[22vh] text-(--ed-ink-on-dark)"
+      className="relative bg-(--ed-surface) py-[22vh] text-(--ed-ink) transition-colors duration-300 dark:bg-(--ed-dark) dark:text-(--ed-ink-on-dark)"
     >
       <div className="ed-px mx-auto max-w-[1760px]">
-        <SectionLabel onDark>03 / Our Approach</SectionLabel>
+        <SectionLabel>03 / Our Approach</SectionLabel>
 
         <div className="mt-14">
           {LINES.map((line, i) => (
@@ -119,7 +119,7 @@ export default function BrandStatement() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-10% 0px" }}
           transition={{ duration: 0.9, delay: 0.3, ease: EASE }}
-          className="ml-auto mt-20 max-w-sm text-[15px] leading-relaxed text-(--ed-ink-2-on-dark) lg:mr-[6vw]"
+          className="ml-auto mt-20 max-w-sm text-[15px] leading-relaxed text-(--ed-ink-2) lg:mr-[6vw] dark:text-(--ed-ink-2-on-dark)"
         >
           Thoughtful layouts, purposeful interactions and performance-first
           foundations — crafted to give every brand its own digital character.

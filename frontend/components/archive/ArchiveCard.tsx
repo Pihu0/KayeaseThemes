@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight, Expand } from "lucide-react";
-import { useProjectCursor } from "@/components/home/cursor";
 import { isFree } from "@/components/archive/ArchiveExperience";
 import { cn } from "@/lib/utils";
 import type { Theme } from "@/lib/types";
@@ -26,7 +25,6 @@ export default function ArchiveCard({
   priority?: boolean;
   onQuickView: (t: Theme) => void;
 }) {
-  const cursor = useProjectCursor("View");
   const [loaded, setLoaded] = useState(false);
 
   const free = isFree(theme);
@@ -51,9 +49,8 @@ export default function ArchiveCard({
       {/* stretched link — the whole card is one tab stop */}
       <Link
         href={`/themes/${theme.slug}`}
-        {...cursor}
         aria-label={`${theme.title} — view theme`}
-        className="absolute inset-0 z-10 rounded-2xl lg:cursor-none"
+        className="absolute inset-0 z-10 rounded-2xl"
       />
 
       {/* ---- preview surface ---- */}
@@ -110,10 +107,13 @@ export default function ArchiveCard({
         <button
           type="button"
           onClick={() => onQuickView(theme)}
-          className="absolute bottom-3 right-3 z-20 flex items-center gap-1.5 rounded-md bg-white/70 px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.16em] text-[#111] opacity-0 backdrop-blur-md transition-all duration-300 hover:bg-white focus-visible:opacity-100 group-hover:opacity-100"
+          className="group/btn relative overflow-hidden absolute bottom-3 right-3 z-20 flex items-center gap-1.5 rounded-xl bg-white/70 px-3.5 py-2 text-[10px] font-medium uppercase tracking-[0.16em] text-[#111] opacity-0 backdrop-blur-md transition-all duration-300 hover:bg-white focus-visible:opacity-100 group-hover:opacity-100"
         >
-          <Expand aria-hidden className="size-3" />
-          Quick view
+          <span className="w-36 h-36 rounded rotate-[-40deg] bg-purple-600 absolute bottom-0 left-0 -translate-x-full ease-out duration-500 transition-all translate-y-full mb-6 ml-6 group-hover/btn:ml-0 group-hover/btn:mb-20 group-hover/btn:translate-x-0 pointer-events-none" />
+          <span className="relative z-10 flex items-center gap-1.5 transition-colors duration-300 ease-in-out group-hover/btn:text-white">
+            <Expand aria-hidden className="size-3" />
+            Quick view
+          </span>
           <span className="sr-only">— {theme.title}</span>
         </button>
       </div>
