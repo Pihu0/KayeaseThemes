@@ -4,8 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
+  AnimatePresence,
   cubicBezier,
   motion,
+  useMotionValueEvent,
   useReducedMotion,
   useScroll,
   useTransform,
@@ -90,6 +92,12 @@ function HeroRunway({
 
   // marquee drifts a touch faster than the page as you scroll (parallax)
   const marqueeX = useTransform(scrollYProgress, [0, 1], ["0%", "-14%"]);
+  // scroll rotates the hue of the active-theme headline's watercolour fill
+  const headingFilter = useTransform(
+    scrollYProgress,
+    [0, 1],
+    ["hue-rotate(0deg)", "hue-rotate(150deg)"]
+  );
 
   const L = deck.length;
   const skipIntro = reduced || introPlayed;
@@ -156,6 +164,22 @@ function HeroRunway({
   const show = skipIntro || phase !== "loading";
   const settled = skipIntro || phase === "done";
 
+  /* Which card is currently on top — drives the left-hand text panel. It
+     swaps to the next card around the midpoint of each card's peel. */
+  const [activeIndex, setActiveIndex] = useState(0);
+  useMotionValueEvent(scrollYProgress, "change", (p) => {
+    if (!morphOn) return;
+    const segLen = (PEEL_END - PEEL_HOLD) / Math.max(1, L - 1);
+    let a = 0;
+    if (p > PEEL_HOLD) {
+      const s = (p - PEEL_HOLD) / segLen;
+      a = Math.floor(s) + (s - Math.floor(s) > 0.5 ? 1 : 0);
+    }
+    a = Math.max(0, Math.min(L - 1, a));
+    setActiveIndex((prev) => (prev === a ? prev : a));
+  });
+  const active = deck[activeIndex] ?? deck[0];
+
   return (
     <section
       ref={runwayRef}
@@ -167,7 +191,7 @@ function HeroRunway({
 
       <div
         className={
-          "flex flex-col overflow-clip " +
+          "relative flex flex-col overflow-clip " +
           (morphOn ? "sticky top-0 h-screen" : "min-h-svh py-32")
         }
       >
@@ -213,8 +237,69 @@ function HeroRunway({
           }}
         />
 
-        {/* ---- the peel deck ---- */}
-        <div className="relative z-10 grid flex-1 place-items-center px-6">
+        {/* ---- left text panel (desktop): fades in once the deck settles,
+             then swaps its copy to the active card as you scroll ---- */}
+        {morphOn && (
+          <motion.div
+            initial={false}
+            animate={{
+              opacity: settled ? 1 : 0,
+              x: settled ? 0 : -28,
+            }}
+            transition={{ duration: 0.9, ease: EASE, delay: skipIntro ? 0 : 0.15 }}
+            style={{ pointerEvents: settled ? "auto" : "none" }}
+            className="ed-px absolute inset-y-0 left-0 z-30 flex w-[46%] flex-col justify-center"
+          >
+            <SectionLabel>{EYEBROW}</SectionLabel>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={active._id}
+                initial={{ opacity: 0, y: 22 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -22 }}
+                transition={{ duration: 0.5, ease: EASE }}
+                className="mt-6"
+              >
+                <p className="ed-label text-(--ed-ink-2)">
+                  {active.category}
+                  {active.framework ? ` / ${active.framework}` : ""}
+                </p>
+                <motion.h2
+                  style={{ filter: headingFilter }}
+                  className="ed-display ed-aurora-text mt-3 text-[clamp(2rem,3.4vw,3.75rem)]"
+                >
+                  {active.title}
+                </motion.h2>
+                <p className="mt-5 max-w-md text-pretty text-[15px] leading-relaxed text-(--ed-ink-2)">
+                  {active.shortDescription || active.description}
+                </p>
+              </motion.div>
+            </AnimatePresence>
+            <div className="mt-9 flex items-center gap-7">
+              <DotButton href={`/themes/${active.slug}`}>View Theme</DotButton>
+              <span className="ed-label tabular-nums text-(--ed-ink-2)">
+                {String(activeIndex + 1).padStart(2, "0")} /{" "}
+                {String(L).padStart(2, "0")}
+              </span>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ---- the peel deck — centred during the intro, then slides right ---- */}
+        <motion.div
+          initial={false}
+          animate={
+            morphOn
+              ? { x: settled ? "19%" : "0%", scale: settled ? 0.86 : 1 }
+              : undefined
+          }
+          transition={{ duration: 1, ease: EASE, delay: skipIntro ? 0 : 0.15 }}
+          className={
+            morphOn
+              ? "absolute inset-0 z-10 grid place-items-center"
+              : "relative z-10 grid flex-1 place-items-center px-6"
+          }
+        >
           <div className="grid place-items-center">
             {deck.map((theme, i) => (
               <DeckCard
@@ -232,21 +317,23 @@ function HeroRunway({
               />
             ))}
           </div>
-        </div>
-
-        {/* ---- copy + CTA, static at the foot of the frame ---- */}
-        <motion.div
-          initial={skipIntro ? false : { opacity: 0, y: 18 }}
-          animate={{ opacity: settled ? 1 : 0, y: settled ? 0 : 18 }}
-          transition={{ duration: 0.8, ease: EASE }}
-          className="relative z-20 mx-auto flex flex-col items-center gap-5 pb-[clamp(1.5rem,4vh,3.5rem)] text-center"
-        >
-          <SectionLabel>{EYEBROW}</SectionLabel>
-          <p className="max-w-md text-pretty text-[13.5px] leading-relaxed text-(--ed-ink-2) sm:text-sm">
-            {TAGLINE}
-          </p>
-          <DotButton href="/themes">Explore Themes</DotButton>
         </motion.div>
+
+        {/* ---- centred copy (mobile / reduced-motion only) ---- */}
+        {!morphOn && (
+          <motion.div
+            initial={skipIntro ? false : { opacity: 0, y: 18 }}
+            animate={{ opacity: settled ? 1 : 0, y: settled ? 0 : 18 }}
+            transition={{ duration: 0.8, ease: EASE }}
+            className="relative z-20 mx-auto mt-12 flex flex-col items-center gap-5 text-center"
+          >
+            <SectionLabel>{EYEBROW}</SectionLabel>
+            <p className="max-w-md text-pretty text-[13.5px] leading-relaxed text-(--ed-ink-2) sm:text-sm">
+              {TAGLINE}
+            </p>
+            <DotButton href="/themes">Explore Themes</DotButton>
+          </motion.div>
+        )}
       </div>
     </section>
   );

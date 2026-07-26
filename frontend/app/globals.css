@@ -297,3 +297,45 @@
     animation: none;
   }
 }
+
+/* Soft floating watercolour fill clipped to text (Wipro-style) — the hero's
+   active-theme headline. Layered muted colour blobs over a base wash drift
+   around forever (the "floating"); a scroll-driven hue-rotate shifts the whole
+   palette as you scroll. */
+.ed-aurora-text {
+  background-image:
+    radial-gradient(circle at 16% 28%, #e070aa, transparent 45%),
+    radial-gradient(circle at 52% 74%, #6f86e0, transparent 45%),
+    radial-gradient(circle at 82% 24%, #48c3b6, transparent 45%),
+    radial-gradient(circle at 38% 88%, #8fd07a, transparent 45%),
+    radial-gradient(circle at 94% 64%, #edb06a, transparent 45%),
+    linear-gradient(90deg, #d072ac, #8a7bd6, #6f86e0, #48c3b6, #8fd07a, #edb06a, #e88a72);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: ed-aurora 16s ease-in-out infinite;
+}
+@keyframes ed-aurora {
+  0% {
+    background-position: 0% 50%;
+  }
+  25% {
+    background-position: 50% 0%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  75% {
+    background-position: 50% 100%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ed-aurora-text {
+    animation: none;
+  }
+}
