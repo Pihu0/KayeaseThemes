@@ -50,7 +50,7 @@ export default function ClosingSection({ themes }: { themes: Theme[] }) {
   return (
     <section
       onMouseMove={onMove}
-      className="relative isolate mt-[clamp(6rem,10vw,10rem)] overflow-hidden bg-[#101010] text-[#f4f4f0]"
+      className="relative isolate mt-[clamp(6rem,10vw,10rem)] overflow-hidden bg-(--ed-dark) text-(--ed-ink-on-dark)"
     >
       {/* faint drifting theme covers */}
       {drift &&
@@ -75,7 +75,7 @@ export default function ClosingSection({ themes }: { themes: Theme[] }) {
           <Magnetic className="inline-block">
             <Link
               href="/themes"
-              className="group inline-flex h-12 items-center gap-2.5 bg-[#f4f4f0] px-6 text-[13px] font-medium uppercase tracking-[0.14em] text-[#101010] transition-colors duration-300 hover:bg-white"
+              className="group inline-flex h-12 items-center gap-2.5 bg-(--ed-ink-on-dark) px-6 text-[13px] font-medium uppercase tracking-[0.14em] text-(--ed-dark) transition-colors duration-300 hover:bg-white hover:text-black"
             >
               <TextRoll>Explore themes</TextRoll>
               <ArrowUpRight className="size-4 transition-transform duration-300 ease-out group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
@@ -83,7 +83,7 @@ export default function ClosingSection({ themes }: { themes: Theme[] }) {
           </Magnetic>
           <a
             href="mailto:team@kayease.com"
-            className="ed-underline text-[13px] font-medium uppercase tracking-[0.14em] text-[#98978f] transition-colors hover:text-[#f4f4f0]"
+            className="ed-underline text-[13px] font-medium uppercase tracking-[0.14em] text-(--ed-ink-2-on-dark) transition-colors hover:text-(--ed-ink-on-dark)"
           >
             team@kayease.com
           </a>

@@ -218,17 +218,17 @@ export default function ContactExperience() {
         </section>
 
         {/* ──── CLOSING DIRECT EMAIL ──── */}
-        <section className="border-t border-(--ed-line) bg-[#101010] text-[#f4f4f0]">
+        <section className="border-t border-(--ed-line) bg-(--ed-dark) text-(--ed-ink-on-dark)">
           <div className="ed-px mx-auto flex max-w-[1760px] flex-col items-start justify-between gap-6 py-16 sm:flex-row sm:items-center">
             <div>
               <SectionLabel onDark>Prefer Direct Email?</SectionLabel>
-              <p className="mt-2 text-[14px] text-[#98978f]">
+              <p className="mt-2 text-[14px] text-(--ed-ink-2-on-dark)">
                 Reach out straight to our team inbox.
               </p>
             </div>
             <a
               href="mailto:team@kayease.com"
-              className="ed-underline group inline-flex items-center gap-2 text-[#f4f4f0]"
+              className="ed-underline group inline-flex items-center gap-2 text-(--ed-ink-on-dark)"
             >
               <span className="ed-display text-[clamp(1.25rem,2.5vw,2rem)] normal-case">
                 team@kayease.com

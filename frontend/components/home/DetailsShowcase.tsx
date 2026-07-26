@@ -267,7 +267,7 @@ function ChapterResponsive({ theme, allThemes = [] }: { theme: Theme; allThemes?
               style={{ width: widthStr, maxWidth: maxW, aspectRatio: ar, borderRadius: br }}
             >
               {/* browser address bar */}
-              <div className="flex items-center justify-between border-b border-black/10 dark:border-white/10 bg-[#f4f4f0] dark:bg-[#181818]/90 px-3.5 py-2 backdrop-blur-md">
+              <div className="flex items-center justify-between border-b border-black/10 dark:border-white/10 bg-[#F7F5F0] dark:bg-[#35332C]/90 px-3.5 py-2 backdrop-blur-md">
                 <div className="flex items-center gap-1.5">
                   <span className="block size-2 rounded-full bg-[#FF5F56]/80" />
                   <span className="block size-2 rounded-full bg-[#FFBD2E]/80" />
@@ -299,7 +299,7 @@ function ChapterResponsive({ theme, allThemes = [] }: { theme: Theme; allThemes?
               <div className="relative h-[calc(100%-33px)] w-full overflow-hidden bg-white dark:bg-[#111111]">
                 {/* clean loading state — only shows Blushora screenshot if present, or clean spinner */}
                 {!iframeLoaded && (
-                  <div className="absolute inset-0 z-0 flex flex-col items-center justify-center bg-[#fafaf8] dark:bg-[#111111]">
+                  <div className="absolute inset-0 z-0 flex flex-col items-center justify-center bg-(--secondary) dark:bg-[#242320]">
                     {fallbackImage ? (
                       <Image
                         src={fallbackImage}
@@ -380,7 +380,7 @@ function ChapterResponsive({ theme, allThemes = [] }: { theme: Theme; allThemes?
                           : 22,
                   }}
                 >
-                  <div className="flex items-center justify-between border-b border-black/10 dark:border-white/10 bg-[#f4f4f0] dark:bg-[#181818] px-3 py-1.5">
+                  <div className="flex items-center justify-between border-b border-black/10 dark:border-white/10 bg-[#F7F5F0] dark:bg-[#35332C] px-3 py-1.5">
                     <div className="flex items-center gap-1">
                       <span className="block size-1.5 rounded-full bg-[#FF5F56]" />
                       <span className="block size-1.5 rounded-full bg-[#FFBD2E]" />
@@ -550,7 +550,7 @@ function ChapterNavigation({ theme }: { theme: Theme }) {
               animate={{ clipPath: "inset(0 0 0% 0)" }}
               exit={{ clipPath: "inset(0 0 100% 0)" }}
               transition={{ duration: 0.6, ease: EASE }}
-              className="border-b border-black/8 dark:border-white/8 bg-[#f4f4f0] dark:bg-[#141414]"
+              className="border-b border-black/8 dark:border-white/8 bg-[#F7F5F0] dark:bg-[#242320]"
             >
               <ul className="px-5 py-5 sm:px-8 sm:py-6">
                 {NAV_LINKS.map((link, i) => (

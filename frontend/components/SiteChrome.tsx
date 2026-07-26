@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import CustomDesignCTA from "@/components/home/CustomDesignCTA";
 
 /* The admin login and the admin panel are restricted, self-contained
    environments — they must NOT show the public navbar or footer (see
@@ -28,10 +29,13 @@ export default function SiteChrome({
     BARE_ROUTES.has(pathname) ||
     BARE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
+  const showCTA = !bare && pathname !== "/contact" && pathname !== "/register";
+
   return (
     <>
       {!bare && navbar}
       {children}
+      {showCTA && <CustomDesignCTA />}
       {!bare && footer}
     </>
   );

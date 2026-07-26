@@ -3,13 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { animate, motion, useInView, useReducedMotion } from "motion/react";
 import { EASE } from "@/lib/motion";
-import MaskedLines from "@/components/motion/MaskedLines";
-import { SectionLabel } from "@/components/home/editorial";
-
-/* 07 — WHY KAYEASE
-   Product substance without the six-icon-card grid: oversized statements,
-   short qualitative lists, and counters that only ever show REAL numbers
-   from the database (no invented “98/100” metrics). */
+import { Zap, Monitor, Cpu } from "lucide-react";
 
 export type RealStats = {
   themes: number;
@@ -18,79 +12,178 @@ export type RealStats = {
 };
 
 export default function WhyKayease({ stats }: { stats: RealStats }) {
-  const blocks: {
-    n: string;
-    lines: string[];
-    items: string[];
-    stat?: { value: number; label: string };
-  }[] = [
+  const blocks = [
     {
       n: "01",
-      lines: ["Built for", "speed."],
-      items: ["Performance-first foundations", "Optimised assets", "Fast first paint"],
-      stat: { value: stats.themes, label: "Production-ready themes" },
+      title: "Built for speed.",
+      description: "Performance-first foundations, optimized assets, and fast first paint.",
+      statValue: stats.themes,
+      statLabel: "Themes Available",
+      icon: Zap,
+      isTop: true,
     },
     {
       n: "02",
-      lines: ["Made for", "every screen."],
-      items: ["Desktop", "Tablet", "Mobile"],
-      stat: { value: stats.categories, label: "Industries covered" },
+      title: "Made for every screen.",
+      description: "Responsive layouts optimized for desktop, tablet, and mobile.",
+      statValue: stats.categories,
+      statLabel: "Industries covered",
+      icon: Monitor,
+      isTop: false,
     },
     {
       n: "03",
-      lines: ["Built to", "evolve."],
-      items: ["Flexible sections", "Flexible layouts", "Flexible branding"],
-      stat: { value: stats.frameworks, label: "Frameworks supported" },
+      title: "Built to evolve.",
+      description: "Flexible sections, custom layouts, and brand-consistent styling.",
+      statValue: stats.frameworks,
+      statLabel: "Frameworks supported",
+      icon: Cpu,
+      isTop: true,
     },
   ];
 
   return (
-    <section aria-label="Why Kayease" className="bg-(--ed-bg) py-28 sm:py-36">
-      <div className="ed-px mx-auto max-w-[1760px]">
-        <SectionLabel>07 / Why Kayease</SectionLabel>
+    <section 
+      aria-label="Why Kayease" 
+      className="bg-(--ed-bg) pt-16 pb-28 sm:pt-20 sm:pb-36 overflow-hidden relative"
+      style={{
+        backgroundImage: "linear-gradient(rgba(0, 102, 255, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 102, 255, 0.02) 1px, transparent 1px)",
+        backgroundSize: "36px 36px",
+      }}
+    >
+      <div className="ed-px mx-auto max-w-[1400px]">
+        <h2
+          style={{ fontFamily: "var(--font-heading)" }}
+          className="relative z-10 text-center text-[clamp(2.25rem,6vw,3.5rem)] font-bold tracking-tight text-(--primary)"
+        >
+          Why Kayease
+        </h2>
 
-        <div className="mt-14">
-          {blocks.map((b, i) => (
-            <motion.div
-              key={b.n}
-              initial={{ opacity: 0, y: 32 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-8% 0px" }}
-              transition={{ duration: 0.9, delay: 0.05 * i, ease: EASE }}
-              className="grid gap-8 border-t border-(--ed-line) py-14 last:border-b lg:grid-cols-12 lg:gap-6"
-            >
-              <span className="text-[11px] tabular-nums text-(--ed-ink-2) lg:col-span-1">
-                {b.n}
-              </span>
-              <MaskedLines
-                as="h3"
-                lines={b.lines}
-                className="ed-display text-[clamp(2.2rem,4.6vw,4.75rem)] lg:col-span-5"
-              />
-              <ul className="space-y-1.5 self-end text-xs uppercase tracking-[0.18em] text-(--ed-ink-2) lg:col-span-3">
-                {b.items.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-              {b.stat && b.stat.value > 0 && (
-                <div className="self-end lg:col-span-3 lg:text-right">
-                  <Counter value={b.stat.value} />
-                  <p className="mt-1 text-xs uppercase tracking-[0.18em] text-(--ed-ink-2)">
-                    {b.stat.label}
-                  </p>
+        {/* Desktop Staggered Grid Timeline */}
+        <div className="relative w-full h-[520px] hidden md:block mt-16">
+          {/* Horizontal timeline line */}
+          <div className="absolute left-0 right-0 top-1/2 h-[2px] bg-(--primary)/20 -translate-y-1/2" />
+
+          <div className="grid grid-cols-3 h-full relative z-10">
+            {blocks.map((b, idx) => {
+              const IconComponent = b.icon;
+              return (
+                <div key={b.n} className="relative flex flex-col justify-between h-full group">
+                  {b.isTop ? (
+                    <>
+                      {/* Top half: Card */}
+                      <div className="h-1/2 flex items-end justify-center pb-10">
+                        <CardBody block={b} index={idx} icon={IconComponent} />
+                      </div>
+                      {/* Bottom half: Empty */}
+                      <div className="h-1/2" />
+                    </>
+                  ) : (
+                    <>
+                      {/* Top half: Empty */}
+                      <div className="h-1/2" />
+                      {/* Bottom half: Card */}
+                      <div className="h-1/2 flex items-start justify-center pt-10">
+                        <CardBody block={b} index={idx} icon={IconComponent} />
+                      </div>
+                    </>
+                  )}
+
+                  {/* Connector Node */}
+                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none z-0">
+                    {b.isTop ? (
+                      <>
+                        {/* Vertical line pointing up to the card */}
+                        <div className="w-[2px] bg-(--primary)/20 group-hover:bg-(--primary) h-10 absolute bottom-2 transition-all duration-300" />
+                        {/* Dot */}
+                        <div className="w-4 h-4 rounded-full border-4 border-(--primary)/30 group-hover:border-(--primary) bg-background z-20 -mt-2 shadow-sm transition-all duration-300" />
+                      </>
+                    ) : (
+                      <>
+                        {/* Dot */}
+                        <div className="w-4 h-4 rounded-full border-4 border-(--primary)/30 group-hover:border-(--primary) bg-background z-20 -mt-2 shadow-sm transition-all duration-300" />
+                        {/* Vertical line pointing down to the card */}
+                        <div className="w-[2px] bg-(--primary)/20 group-hover:bg-(--primary) h-10 absolute top-2 transition-all duration-300" />
+                      </>
+                    )}
+                  </div>
                 </div>
-              )}
-            </motion.div>
-          ))}
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Mobile Vertical Timeline */}
+        <div className="relative w-full space-y-12 md:hidden pl-10 mt-12">
+          {/* Vertical timeline line */}
+          <div className="absolute left-4 top-2 bottom-2 w-[2px] bg-(--primary)/20" />
+
+          {blocks.map((b, idx) => {
+            const IconComponent = b.icon;
+            return (
+              <div key={b.n} className="relative">
+                {/* Dot */}
+                <div className="absolute -left-[32px] top-6 w-3 h-3 rounded-full border-2 border-(--primary) bg-background z-20 shadow-xs" />
+                <CardBody block={b} index={idx} icon={IconComponent} />
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
   );
 }
 
-/** Counts up to a real, verified number when it enters the viewport. */
+function CardBody({
+  block,
+  index,
+  icon: Icon,
+}: {
+  block: any;
+  index: number;
+  icon: any;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: block.isTop ? -20 : 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-10%" }}
+      transition={{ duration: 0.6, delay: index * 0.1, ease: EASE }}
+      className="w-full max-w-[340px] rounded-3xl border border-border/80 bg-background/60 dark:bg-neutral-900/60 backdrop-blur-md p-6 shadow-md transition-all duration-300 group-hover:shadow-xl group-hover:border-(--primary)/40 group relative z-10"
+    >
+      {/* Icon */}
+      <div className="inline-flex items-center justify-center rounded-2xl bg-(--primary)/10 text-(--primary) p-3 transition-colors group-hover:bg-(--primary) group-hover:text-white duration-300">
+        <Icon className="size-5" />
+      </div>
+
+      {/* Title */}
+      <div className="mt-4 text-sm font-bold text-foreground group-hover:text-(--primary) transition-colors duration-300">
+        {block.title}
+      </div>
+
+      {/* Description */}
+      <div className="mt-1 text-xs text-muted-foreground group-hover:text-foreground/90 leading-relaxed transition-colors duration-300">
+        {block.description}
+      </div>
+
+      {/* Divider */}
+      <div className="my-4 border-t border-border/60" />
+
+      {/* Stat Label */}
+      <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground group-hover:text-(--primary) transition-colors duration-300">
+        {block.statLabel}
+      </div>
+
+      {/* Stat Value */}
+      <div className="mt-1.5 text-4xl font-extrabold tracking-tight text-foreground group-hover:text-(--primary) transition-colors duration-300">
+        <Counter value={block.statValue} />
+      </div>
+    </motion.div>
+  );
+}
+
 function Counter({ value }: { value: number }) {
-  const ref = useRef<HTMLParagraphElement>(null);
+  const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: "-10% 0px" });
   const reduced = useReducedMotion();
   const [animated, setAnimated] = useState(0);
@@ -100,19 +193,17 @@ function Counter({ value }: { value: number }) {
     const controls = animate(0, value, {
       duration: 1.4,
       ease: EASE,
-      // setState from the animation-frame callback — not a sync effect call
       onUpdate: (v) => setAnimated(Math.round(v)),
     });
     return () => controls.stop();
   }, [inView, value, reduced]);
 
-  // reduced motion: no count-up, just the real number
   const display = reduced ? value : animated;
 
   return (
-    <p ref={ref} className="ed-display text-[clamp(3rem,6vw,6rem)] tabular-nums">
+    <span ref={ref} className="tabular-nums">
       {display}
-      <span className="text-(--ed-ink-2)">+</span>
-    </p>
+      <span className="text-(--primary) ml-0.5">+</span>
+    </span>
   );
 }

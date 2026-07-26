@@ -280,42 +280,13 @@ function HeroRunway({
     });
   };
 
-  // Paint splat and click droplet tracking
-  const [splashes, setSplashes] = useState<{ id: number; x: number; y: number; color: string }[]>([]);
-
-  const handleHeroClick = (e: React.MouseEvent<HTMLElement>) => {
-    if (!runwayRef.current) return;
-    const rect = runwayRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    const newSplash = {
-      id: Date.now(),
-      x,
-      y,
-      color: colors.primary,
-    };
-    
-    setSplashes((prev) => [...prev, newSplash]);
-    
-    setTimeout(() => {
-      setSplashes((prev) => prev.filter((s) => s.id !== newSplash.id));
-    }, 2000);
-  };
-
   return (
     <section
       ref={runwayRef}
       aria-label="Kayease Themes introduction"
       className="relative select-none"
       style={morphOn ? { height: `${L * 100}vh` } : undefined}
-      onClick={handleHeroClick}
     >
-      {/* Paint splats */}
-      {splashes.map((splash) => (
-        <PaintSplash key={splash.id} splash={splash} />
-      ))}
-      
       {phase !== "done" && <HeroLoader phase={phase} pct={pct} />}
 
       <div
@@ -367,77 +338,53 @@ function HeroRunway({
 
         {/* Dynamic theme-aware background system */}
         <div aria-hidden className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-          <AnimatePresence mode="popLayout">
-            <motion.div
-              key={active._id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.8, ease: "easeInOut" }}
-              className="absolute inset-0"
-            >
-              {/* Blob 1 */}
-              <motion.div
-                animate={{
-                  x: [0, 40, -30, 0],
-                  y: [0, -50, 30, 0],
-                  scale: [1, 1.15, 0.9, 1],
-                }}
-                transition={{
-                  x: { duration: 25, repeat: Infinity, ease: "easeInOut" },
-                  y: { duration: 28, repeat: Infinity, ease: "easeInOut" },
-                  scale: { duration: 22, repeat: Infinity, ease: "easeInOut" },
-                }}
-                style={{
-                  background: `radial-gradient(circle 400px at center, ${colors.primary}33, transparent)`,
-                }}
-                className="absolute left-[35%] top-[30%] h-[70vh] w-[70vh] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-70 blur-3xl will-change-transform"
-              />
-              {/* Blob 2 */}
-              <motion.div
-                animate={{
-                  x: [0, -50, 30, 0],
-                  y: [0, 40, -40, 0],
-                  scale: [1, 0.9, 1.15, 1],
-                }}
-                transition={{
-                  x: { duration: 30, repeat: Infinity, ease: "easeInOut" },
-                  y: { duration: 26, repeat: Infinity, ease: "easeInOut" },
-                  scale: { duration: 24, repeat: Infinity, ease: "easeInOut" },
-                }}
-                style={{
-                  background: `radial-gradient(circle 350px at center, ${colors.secondary}26, transparent)`,
-                }}
-                className="absolute right-[35%] bottom-[30%] h-[60vh] w-[60vh] translate-x-1/2 translate-y-1/2 rounded-full opacity-60 blur-3xl will-change-transform"
-              />
+          <style>{`
+            @keyframes float-blob-1 {
+              0% { transform: translate(-50%, -50%) translate(0px, 0px) scale(1); }
+              50% { transform: translate(-50%, -50%) translate(40px, -30px) scale(1.08); }
+              100% { transform: translate(-50%, -50%) translate(0px, 0px) scale(1); }
+            }
+            @keyframes float-blob-2 {
+              0% { transform: translate(50%, 50%) translate(0px, 0px) scale(1); }
+              50% { transform: translate(50%, 50%) translate(-40px, 30px) scale(0.92); }
+              100% { transform: translate(50%, 50%) translate(0px, 0px) scale(1); }
+            }
+            @keyframes pulse-ripple {
+              0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0.7; }
+              100% { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
+            }
+          `}</style>
+          <div className="absolute inset-0">
+            {/* Blob 1 */}
+            <div
+              style={{
+                background: `radial-gradient(circle 400px at center, ${colors.primary}18, transparent)`,
+                animation: "float-blob-1 25s infinite ease-in-out",
+              }}
+              className="absolute left-[35%] top-[30%] h-[70vh] w-[70vh] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-70 blur-3xl will-change-transform"
+            />
+            {/* Blob 2 */}
+            <div
+              style={{
+                background: `radial-gradient(circle 350px at center, ${colors.secondary}14, transparent)`,
+                animation: "float-blob-2 28s infinite ease-in-out",
+              }}
+              className="absolute right-[35%] bottom-[30%] h-[60vh] w-[60vh] translate-x-1/2 translate-y-1/2 rounded-full opacity-60 blur-3xl will-change-transform"
+            />
 
-              {/* Splash wave ripple 1 */}
-              <motion.div
-                initial={{ scale: 0.3, opacity: 0.7 }}
-                animate={{ scale: 2.5, opacity: 0 }}
-                transition={{ duration: 1.6, ease: "easeOut" }}
-                style={{
-                  border: `1.5px solid ${colors.primary}`,
-                  background: `radial-gradient(circle, ${colors.primary}15 0%, transparent 65%)`,
-                }}
-                className="absolute left-1/2 top-1/2 h-[75vh] w-[75vh] -translate-x-1/2 -translate-y-1/2 rounded-full blur-xs will-change-transform"
-              />
-              {/* Splash wave ripple 2 */}
-              <motion.div
-                initial={{ scale: 0.2, opacity: 0.5 }}
-                animate={{ scale: 2.0, opacity: 0 }}
-                transition={{ duration: 1.2, ease: "easeOut", delay: 0.15 }}
-                style={{
-                  border: `1px dashed ${colors.secondary}`,
-                  background: `radial-gradient(circle, ${colors.secondary}11 0%, transparent 60%)`,
-                }}
-                className="absolute left-1/2 top-1/2 h-[75vh] w-[75vh] -translate-x-1/2 -translate-y-1/2 rounded-full blur-xs will-change-transform"
-              />
+            {/* Splash wave ripples */}
+            <div
+              style={{
+                border: `1.5px solid ${colors.primary}22`,
+                background: `radial-gradient(circle, ${colors.primary}08 0%, transparent 65%)`,
+                animation: "pulse-ripple 3.2s infinite linear",
+              }}
+              className="absolute left-1/2 top-1/2 h-[75vh] w-[75vh] -translate-x-1/2 -translate-y-1/2 rounded-full blur-xs will-change-transform"
+            />
 
-              {/* Floating tech design particles */}
-              <FloatingParticles colors={colors} />
-            </motion.div>
-          </AnimatePresence>
+            {/* Floating tech design particles */}
+            <FloatingParticles colors={colors} />
+          </div>
         </div>
 
         {/* ---- left text panel (desktop): fades in once the deck settles,
@@ -493,169 +440,94 @@ function HeroRunway({
                   key={active._id}
                   className="mt-0"
                 >
-
-                  {/* Title */}
+                  {/* Title with solid high-performance hardware-accelerated gradient */}
                   <motion.h2
-                    key={active._id}
-                    initial={{ backgroundPosition: "0% 0%, 100% 100%, 50% 50%, 100% 0%, 0% 100%, 0% 0%" }}
-                    animate={{
-                      backgroundPosition: [
-                        "0% 0%, 100% 100%, 50% 50%, 100% 0%, 0% 100%, 0% 0%",
-                        "100% 50%, 0% 50%, 80% 20%, 0% 100%, 100% 0%, 100% 50%",
-                        "50% 100%, 50% 0%, 20% 80%, 100% 100%, 0% 0%, 50% 100%",
-                        "0% 0%, 100% 100%, 50% 50%, 100% 0%, 0% 100%, 0% 0%"
-                      ],
-                    }}
-                    transition={{
-                      backgroundPosition: {
-                        duration: 14,
-                        repeat: Infinity,
-                        ease: "linear",
-                      },
-                    }}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.5, ease: EASE }}
                     style={{
-                      backgroundImage: `
-                        radial-gradient(circle at 20% 20%, ${colors.primary}, transparent 55%),
-                        radial-gradient(circle at 80% 80%, ${colors.secondary}, transparent 55%),
-                        radial-gradient(circle at 50% 10%, #ffffff, transparent 50%),
-                        radial-gradient(circle at 80% 20%, ${colors.primary}, transparent 50%),
-                        radial-gradient(circle at 10% 80%, ${colors.secondary}, transparent 50%),
-                        linear-gradient(135deg, ${colors.primary}, ${colors.secondary})
-                      `,
-                      backgroundSize: "200% 200%",
+                      backgroundImage: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
                       WebkitBackgroundClip: "text",
                       WebkitTextFillColor: "transparent",
                       backgroundClip: "text",
                     }}
                     className="ed-display mt-2 text-[clamp(2rem,3.4vw,3.75rem)]"
                   >
-                    {active.title.split("").map((char, idx) => (
-                      <motion.span
-                        key={`${active._id}-${idx}`}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.18, ease: "easeOut" }}
-                        className="inline-block"
-                      >
-                        {char === " " ? "\u00A0" : char}
-                      </motion.span>
-                    ))}
+                    {active.title}
                   </motion.h2>
 
-                  {/* Animated Tech Badges */}
+                  {/* Animated Tech Badges using fast CSS hover scales */}
                   <motion.div
-                    variants={{
-                      hidden: { opacity: 0 },
-                      show: {
-                        opacity: 1,
-                        transition: {
-                          staggerChildren: 0.08,
-                        },
-                      },
-                    }}
-                    initial="hidden"
-                    animate="show"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.4 }}
                     className="mt-3 flex flex-wrap gap-2"
                   >
                     {[...(active.technologies || []), "SEO Optimized"].slice(0, 4).map((tech) => (
-                      <motion.span
+                      <span
                         key={tech}
-                        variants={{
-                          hidden: { opacity: 0, y: 10 },
-                          show: { opacity: 1, y: 0 },
-                        }}
-                        whileHover={{
-                          y: -3,
-                          scale: 1.05,
-                          borderColor: colors.primary,
-                          color: colors.primary,
-                        }}
-                        transition={{ type: "spring", stiffness: 400, damping: 15 }}
                         style={{
                           borderColor: "rgba(255, 255, 255, 0.1)",
                         }}
-                        className="inline-flex items-center rounded-md border bg-white/5 px-2.5 py-0.5 text-xs font-medium backdrop-blur-md text-(--ed-ink-2) transition-colors duration-200"
+                        className="inline-flex items-center rounded-md border bg-white/5 px-2.5 py-0.5 text-xs font-medium backdrop-blur-md text-(--ed-ink-2) transition-all duration-200 hover:scale-105 hover:text-white cursor-default"
                       >
                         {tech}
-                      </motion.span>
+                      </span>
                     ))}
                   </motion.div>
 
-                  {/* Description (Staggered words) */}
-                  <p className="mt-4 max-w-md text-pretty text-[15px] leading-relaxed text-(--ed-ink-2)">
-                    {(active.shortDescription || active.description).split(" ").map((word, wIdx) => (
-                      <motion.span
-                        key={wIdx}
-                        initial={{ opacity: 0, y: 4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.4, delay: 0.1 + wIdx * 0.012, ease: "easeOut" }}
-                        className="inline-block mr-[0.25em]"
-                      >
-                        {word}
-                      </motion.span>
-                    ))}
-                  </p>
+                  {/* Description (optimized, single block transition) */}
+                  <motion.p
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                    transition={{ duration: 0.5, delay: 0.08, ease: "easeOut" }}
+                    className="mt-4 max-w-md text-pretty text-[15px] leading-relaxed text-(--ed-ink-2)"
+                  >
+                    {active.shortDescription || active.description}
+                  </motion.p>
 
-                  {/* Statistics / Metrics Block with spring staggered entry and underlines */}
-                  <div className="mt-6 grid grid-cols-3 gap-4 border-t border-white/10 pt-5">
-                    <motion.div
-                      whileHover="hover"
-                      initial={{ opacity: 0, y: 15 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ type: "spring", stiffness: 220, damping: 20, delay: 0.3 }}
-                      className="relative overflow-hidden group pb-1.5 cursor-pointer"
-                    >
+                  {/* Statistics / Metrics Block with CSS-only hover states */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.5, delay: 0.15 }}
+                    className="mt-6 grid grid-cols-3 gap-4 border-t border-white/10 pt-5"
+                  >
+                    <div className="relative overflow-hidden group pb-1.5 cursor-pointer">
                       <p className="text-xl font-bold tracking-tight text-(--ed-ink)">
-                        <CountUp value={120} suffix="+" />
+                        120+
                       </p>
                       <p className="text-[10px] uppercase tracking-wider text-(--ed-ink-2)">Themes Available</p>
-                      <motion.div
-                        variants={{ hover: { width: "100%", opacity: 1 } }}
-                        initial={{ width: "0%", opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="absolute bottom-0 left-0 h-0.5"
+                      <div
+                        className="absolute bottom-0 left-0 h-0.5 w-0 group-hover:w-full transition-all duration-300 opacity-0 group-hover:opacity-100"
                         style={{ backgroundColor: colors.primary }}
                       />
-                    </motion.div>
-                    <motion.div
-                      whileHover="hover"
-                      initial={{ opacity: 0, y: 15 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ type: "spring", stiffness: 220, damping: 20, delay: 0.4 }}
-                      className="relative overflow-hidden group pb-1.5 cursor-pointer"
-                    >
+                    </div>
+                    <div className="relative overflow-hidden group pb-1.5 cursor-pointer">
                       <p className="text-xl font-bold tracking-tight text-(--ed-ink)">
-                        <CountUp value={active.downloads || 45} suffix="K+" />
+                        {active.downloads || 45}K+
                       </p>
                       <p className="text-[10px] uppercase tracking-wider text-(--ed-ink-2)">Downloads</p>
-                      <motion.div
-                        variants={{ hover: { width: "100%", opacity: 1 } }}
-                        initial={{ width: "0%", opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="absolute bottom-0 left-0 h-0.5"
+                      <div
+                        className="absolute bottom-0 left-0 h-0.5 w-0 group-hover:w-full transition-all duration-300 opacity-0 group-hover:opacity-100"
                         style={{ backgroundColor: colors.primary }}
                       />
-                    </motion.div>
-                    <motion.div
-                      whileHover="hover"
-                      initial={{ opacity: 0, y: 15 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ type: "spring", stiffness: 220, damping: 20, delay: 0.5 }}
-                      className="relative overflow-hidden group pb-1.5 cursor-pointer"
-                    >
+                    </div>
+                    <div className="relative overflow-hidden group pb-1.5 cursor-pointer">
                       <p className="text-xl font-bold tracking-tight text-(--ed-ink)">
-                        <CountUpDecimal value={active.rating || 4.9} />
+                        {(active.rating || 4.9).toFixed(1)}
                       </p>
                       <p className="text-[10px] uppercase tracking-wider text-(--ed-ink-2)">Avg Rating</p>
-                      <motion.div
-                        variants={{ hover: { width: "100%", opacity: 1 } }}
-                        initial={{ width: "0%", opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="absolute bottom-0 left-0 h-0.5"
+                      <div
+                        className="absolute bottom-0 left-0 h-0.5 w-0 group-hover:w-full transition-all duration-300 opacity-0 group-hover:opacity-100"
                         style={{ backgroundColor: colors.primary }}
                       />
-                    </motion.div>
-                  </div>
+                    </div>
+                  </motion.div>
                 </motion.div>
               </AnimatePresence>
             </div>
@@ -882,31 +754,7 @@ function DeckCard({
   const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [6, -6]), springConfig);
   const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-8, 8]), springConfig);
 
-  // Dynamic shadow offset reacting to tilt (with springs for smooth return on mouse leave)
-  const shadowX = useSpring(useTransform(mouseX, [-0.5, 0.5], [15, -15]), springConfig);
-  const shadowY = useSpring(useTransform(mouseY, [-0.5, 0.5], [45, 15]), springConfig);
-  const shadowBlur = useSpring(useTransform(mouseY, [-0.5, 0.5], [60, 90]), springConfig);
-  
-  const boxShadow = useTransform(
-    [shadowX, shadowY, shadowBlur, peelProgress],
-    ([sx, sy, sb, pp]) => {
-      const isActive = index === activeIndex;
-      if (!isActive) {
-        return "0px 20px 40px -15px rgba(17, 17, 17, 0.3)";
-      }
-      const xVal = sx as number;
-      const yVal = sy as number;
-      const bVal = sb as number;
-      const pVal = pp as number;
-      if (mouseX.get() !== 0 || mouseY.get() !== 0) {
-        return `${xVal}px ${yVal}px ${bVal}px -25px rgba(17, 17, 17, 0.6)`;
-      }
-      const psY = 40 + pVal * 20;
-      const psBlur = 80 + pVal * 20;
-      const psOpacity = 0.45 + pVal * 0.15;
-      return `0px ${psY}px ${psBlur}px -30px rgba(17, 17, 17, ${psOpacity})`;
-    }
-  );
+
 
   // Performance optimized spotlight positioning using MotionValues (no React re-renders)
   const spotlightX = useMotionValue(0);
@@ -1027,11 +875,14 @@ function DeckCard({
                     morphOn
                       ? {
                           scale: cardScale,
-                          boxShadow,
                         }
                       : undefined
                   }
-                  className="group relative aspect-3/2 overflow-hidden rounded-2xl bg-(--ed-bg-soft) shadow-[0_40px_80px_-30px_rgba(17,17,17,0.45)] ring-1 ring-(--ed-line-soft) will-change-transform"
+                  className={`group relative aspect-3/2 overflow-hidden rounded-2xl bg-(--ed-bg-soft) ring-1 ring-(--ed-line-soft) will-change-transform transition-all duration-500 ease-out ${
+                    index === activeIndex
+                      ? "shadow-[0_40px_80px_-25px_rgba(17,17,17,0.45)] hover:shadow-[0_55px_100px_-30px_rgba(17,17,17,0.6)]"
+                      : "shadow-[0_20px_40px_-15px_rgba(17,17,17,0.25)] opacity-75"
+                  }`}
                 >
                   {theme.image && (
                     <Image
@@ -1145,7 +996,7 @@ function DotButton({
           style={{
             backgroundImage: colors
               ? `linear-gradient(to right, ${colors.primary}33, ${colors.secondary}33)`
-              : "linear-gradient(to right, var(--brand) 20%, #a855f7 20%)",
+              : "linear-gradient(to right, var(--brand) 30%, var(--secondary) 100%)",
           }}
         />
         
@@ -1251,136 +1102,55 @@ function VisualDotButton({
 function FloatingParticles({ colors }: { colors: { primary: string; secondary: string } }) {
   return (
     <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden opacity-30">
+      <style>{`
+        @keyframes particle-float-1 {
+          0% { transform: translate(0px, 0px) rotate(0deg); }
+          50% { transform: translate(15px, -20px) rotate(180deg); }
+          100% { transform: translate(0px, 0px) rotate(360deg); }
+        }
+        @keyframes particle-float-2 {
+          0% { transform: translate(0px, 0px); }
+          50% { transform: translate(-20px, 15px); }
+          100% { transform: translate(0px, 0px); }
+        }
+      `}</style>
       {/* Particle 1: Top Left */}
-      <motion.div
-        animate={{
-          y: [0, -15, 15, 0],
-          x: [0, 10, -10, 0],
-          rotate: [0, 90, 180, 360],
+      <div
+        style={{
+          color: colors.primary,
+          animation: "particle-float-1 18s infinite ease-in-out",
         }}
-        transition={{
-          duration: 18,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-        className="absolute left-[15%] top-[25%] size-3 border border-current rounded-full"
-        style={{ color: colors.primary }}
+        className="absolute left-[15%] top-[25%] size-3 border border-current rounded-full will-change-transform"
       />
       
       {/* Particle 2: Bottom Left */}
-      <motion.div
-        animate={{
-          y: [0, 20, -20, 0],
-          x: [0, -15, 15, 0],
+      <div
+        style={{
+          color: colors.secondary,
+          animation: "particle-float-2 22s infinite ease-in-out",
         }}
-        transition={{
-          duration: 22,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-        className="absolute left-[20%] bottom-[20%] text-xs font-light"
-        style={{ color: colors.secondary }}
+        className="absolute left-[20%] bottom-[20%] text-xs font-light will-change-transform"
       >
         +
-      </motion.div>
+      </div>
 
       {/* Particle 3: Top Right */}
-      <motion.div
-        animate={{
-          y: [0, -25, 25, 0],
-          x: [0, 20, -20, 0],
-          rotate: [0, -180, 0],
+      <div
+        style={{
+          color: colors.primary,
+          animation: "particle-float-1 25s infinite ease-in-out",
         }}
-        transition={{
-          duration: 25,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-        className="absolute right-[15%] top-[20%] size-2 bg-current rounded-full"
-        style={{ color: colors.primary }}
+        className="absolute right-[15%] top-[20%] size-2 bg-current rounded-full will-change-transform"
       />
 
       {/* Particle 4: Center Bottom */}
-      <motion.div
-        animate={{
-          y: [0, 15, -15, 0],
-          x: [0, 15, -15, 0],
-        }}
-        transition={{
-          duration: 20,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-        className="absolute left-[50%] bottom-[15%] size-4 border border-current opacity-20 rotate-45"
-        style={{ color: colors.secondary }}
-      />
-    </div>
-  );
-}
-
-/* ---------- Paint brush cursor component ---------- */
-/* ---------- Paint splash splat and falling paint drops effect ---------- */
-
-interface Droplet {
-  x: number[];
-  y: number[];
-  scale: number[];
-  opacity: number[];
-  size: number;
-}
-
-function PaintSplash({ splash }: { splash: { id: number; x: number; y: number; color: string } }) {
-  const droplets = useRef<Droplet[]>(
-    Array.from({ length: 9 }).map((_, i) => {
-      const angle = (i * 2 * Math.PI) / 9 + (Math.random() * 0.4 - 0.2);
-      const distance = 40 + Math.random() * 70;
-      const targetX = Math.cos(angle) * distance;
-      const peakY = Math.sin(angle) * distance - 35; 
-      const fallY = peakY + 220 + Math.random() * 100;
-      return {
-        x: [0, targetX * 0.6, targetX],
-        y: [0, peakY, fallY],
-        scale: [0.6, 1.3, 0.1],
-        opacity: [1, 0.95, 0],
-        size: 3 + Math.random() * 6,
-      };
-    })
-  );
-
-  return (
-    <div className="absolute pointer-events-none select-none z-50" style={{ left: splash.x, top: splash.y }}>
-      <motion.div
-        initial={{ scale: 0.1, opacity: 0.85 }}
-        animate={{ scale: [1, 1.2, 1.1], opacity: 0 }}
-        transition={{ duration: 1.1, ease: "easeOut" }}
-        className="absolute rounded-full -translate-x-1/2 -translate-y-1/2 blur-[1.5px]"
+      <div
         style={{
-          width: 42,
-          height: 42,
-          backgroundColor: splash.color,
+          color: colors.secondary,
+          animation: "particle-float-2 20s infinite ease-in-out",
         }}
+        className="absolute left-[50%] bottom-[15%] size-4 border border-current opacity-20 rotate-45 will-change-transform"
       />
-      {droplets.current.map((drop, idx) => (
-        <motion.div
-          key={idx}
-          animate={{
-            x: drop.x,
-            y: drop.y,
-            scale: drop.scale,
-            opacity: drop.opacity,
-          }}
-          transition={{
-            duration: 1.5,
-            ease: "easeOut",
-          }}
-          className="absolute rounded-full -translate-x-1/2 -translate-y-1/2"
-          style={{
-            width: drop.size,
-            height: drop.size,
-            backgroundColor: splash.color,
-          }}
-        />
-      ))}
     </div>
   );
 }

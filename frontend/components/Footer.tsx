@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Logo from "@/components/Logo";
 
 /* 10 — SITE FOOTER
    Black-background footer: an animated dotted top border, a four-column nav
@@ -36,9 +37,13 @@ export default function Footer() {
 
       <div className="site-footer__inner">
         <div className="site-footer__top">
-          <h2>Premium themes, crafted to make a first impression.</h2>
+          <div className="site-footer__brand-column">
+            <Logo imgClassName="h-20" />
+            <h2>Premium themes, crafted to make a first impression.</h2>
+          </div>
 
           <nav className="site-footer__nav" aria-label="Footer navigation">
+            <span className="site-footer__nav-title">Explore</span>
             {NAV_EXPLORE.map((l) => (
               <Link key={l.label} href={l.href}>
                 {l.label}
@@ -47,6 +52,7 @@ export default function Footer() {
           </nav>
 
           <nav className="site-footer__nav" aria-label="Company links">
+            <span className="site-footer__nav-title">Company</span>
             {NAV_COMPANY.map((l) => (
               <Link key={l.label} href={l.href}>
                 {l.label}
@@ -55,6 +61,7 @@ export default function Footer() {
           </nav>
 
           <nav className="site-footer__nav" aria-label="Connect">
+            <span className="site-footer__nav-title">Connect</span>
             {NAV_CONNECT.map((l) =>
               l.external ? (
                 <a key={l.label} href={l.href} target="_blank" rel="noreferrer">
@@ -67,25 +74,6 @@ export default function Footer() {
               )
             )}
           </nav>
-        </div>
-
-        <div className="site-footer__brand-row">
-          <Link className="site-footer__brand" href="/" aria-label="Kayease home">
-            <span className="site-footer__mark" aria-hidden="true" />
-            {/* SVG wordmark auto-scales to fill the row — never overflows or
-               clips, whatever the viewport. textLength pins the glyphs to the
-               viewBox width; max-height caps how large it grows on desktop. */}
-            <svg
-              className="site-footer__wordmark"
-              viewBox="0 0 1000 190"
-              preserveAspectRatio="xMinYMid meet"
-              aria-hidden="true"
-            >
-              <text x="0" y="145" textLength="1000" lengthAdjust="spacingAndGlyphs">
-                Kayease
-              </text>
-            </svg>
-          </Link>
         </div>
 
         <div className="site-footer__legal">
@@ -102,13 +90,13 @@ const css = `
 .site-footer {
   --hero-max-width: 1820px;
   /* light-mode palette (default) — flips to black under .dark below */
-  --ft-bg: #f5f4f0;
-  --ft-ink: #111111;
-  --ft-nav: rgb(17 17 17 / 0.82);
-  --ft-legal: rgb(17 17 17 / 0.5);
-  --ft-mark: #111111;      /* the circle */
-  --ft-mark-cut: #f5f4f0;  /* zig-zag stripes = page bg */
-  --ft-dot: 17 17 17;      /* rgb triple for the drifting dots */
+  --ft-bg: #F8FAFC;
+  --ft-ink: #0F172A;
+  --ft-nav: rgba(15, 23, 42, 0.82);
+  --ft-legal: rgba(15, 23, 42, 0.5);
+  --ft-mark: #2563eb;      /* brand blue circle */
+  --ft-mark-cut: #F8FAFC;  /* cream zig-zag stripes */
+  --ft-dot: 15 23 42;      /* rgb triple for drifting dots */
   position: relative;
   /* stay below the sticky navbar (z-50) so the footer never paints over it
      as it scrolls up underneath */
@@ -126,13 +114,13 @@ const css = `
 
 /* next-themes toggles .dark on <html> — restore the black art direction */
 .dark .site-footer {
-  --ft-bg: #000000;
-  --ft-ink: #ffffff;
-  --ft-nav: rgb(255 255 255 / 0.88);
-  --ft-legal: rgb(255 255 255 / 0.52);
-  --ft-mark: #ffffff;
-  --ft-mark-cut: #000000;
-  --ft-dot: 255 255 255;
+  --ft-bg: #23221E;
+  --ft-ink: #F8FAFC;
+  --ft-nav: rgba(248, 250, 252, 0.88);
+  --ft-legal: rgba(248, 250, 252, 0.52);
+  --ft-mark: #2563eb;
+  --ft-mark-cut: #23221E;
+  --ft-dot: 248 250 252;
 }
 
 .site-footer a {
@@ -193,9 +181,10 @@ const css = `
   max-width: 680px;
   margin: 0;
   color: var(--ft-ink);
-  font-size: clamp(34px, 3.5vw, 62px);
-  font-weight: 220;
-  letter-spacing: 0;
+  font-family: var(--font-heading), sans-serif;
+  font-size: clamp(26px, 2.5vw, 38px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
   line-height: 1.06;
 }
 
@@ -203,14 +192,23 @@ const css = `
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: clamp(14px, 1.35vw, 22px);
+  gap: clamp(10px, 1vw, 16px);
+}
+
+.site-footer__nav-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--primary);
+  margin-bottom: clamp(6px, 0.8vw, 12px);
 }
 
 .site-footer__nav a {
   color: var(--ft-nav);
-  font-size: 16px;
-  font-weight: 650;
-  line-height: 1.1;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.2;
   transition: color 180ms ease, transform 180ms ease;
 }
 
@@ -219,70 +217,28 @@ const css = `
   transform: translateX(3px);
 }
 
-/* --- brand row --- */
-.site-footer__brand-row {
-  width: 100%;
-  margin-top: clamp(18px, 3vw, 46px);
-}
-
-.site-footer__brand {
+/* --- brand column --- */
+.site-footer__brand-column {
   display: flex;
-  align-items: center;
-  width: 100%;
-  color: var(--ft-ink);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
 }
 
-.site-footer__mark {
-  position: relative;
-  flex: 0 0 clamp(58px, 6.1vw, 118px);
-  aspect-ratio: 1;
-  margin-right: clamp(14px, 1.6vw, 28px);
-  overflow: hidden;
-  border-radius: 50%;
-  background: var(--ft-mark);
-}
 
-.site-footer__mark::before {
-  content: "";
-  position: absolute;
-  inset: -18%;
-  background: var(--ft-mark-cut);
-  clip-path: polygon(
-    0 20%, 100% 8%, 100% 19%, 0 31%,
-    0 43%, 100% 31%, 100% 42%, 0 54%,
-    0 66%, 100% 54%, 100% 65%, 0 77%
-  );
-}
-
-.site-footer__wordmark {
-  flex: 1 1 auto;
-  min-width: 0;
-  width: 100%;
-  height: auto;
-  /* fills the row width on smaller screens; caps its height on desktop so
-     the wordmark stays large but never absurd. No clip on any device. */
-  max-height: clamp(56px, 22vw, 214px);
-  overflow: visible;
-}
-
-.site-footer__wordmark text {
-  fill: var(--ft-ink);
-  font-family: "Geist", "Inter", ui-sans-serif, system-ui, -apple-system,
-    BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-weight: 760;
-  font-size: 150px;
-}
 
 /* --- legal line --- */
 .site-footer__legal {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-start;
-  gap: 8px 18px;
-  margin-top: clamp(14px, 1.4vw, 24px);
+  gap: 8px 24px;
+  border-top: 1px dashed var(--border);
+  padding-top: 20px;
+  margin-top: clamp(20px, 3vw, 36px);
   color: var(--ft-legal);
-  font-size: 9px;
-  line-height: 1.35;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .site-footer__legal p {
@@ -321,13 +277,6 @@ const css = `
   }
   .site-footer__nav a {
     font-size: 15px;
-  }
-  .site-footer__mark {
-    flex-basis: clamp(38px, 12vw, 58px);
-  }
-  .site-footer__wordmark {
-    /* fills the single-column row width; keeps it from getting too tall */
-    max-height: clamp(44px, 20vw, 96px);
   }
 }
 `;

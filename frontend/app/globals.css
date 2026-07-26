@@ -77,80 +77,80 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  /* Brand accent — indigo-violet. Flows into buttons, links, logo, focus rings. */
-  --primary: oklch(0.548 0.222 276.5);
-  --primary-foreground: oklch(0.985 0 0);
-  --brand: oklch(0.548 0.222 276.5);
-  --brand-soft: oklch(0.548 0.222 276.5 / 12%);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.548 0.222 276.5);
-  /* Reveal-box wipe color for the login-page animated form (21st.dev) */
-  --skeleton: oklch(0.548 0.222 276.5);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --background: #F8FAFC;
+  --foreground: #0F172A;
+  --card: #FFFFFF;
+  --card-foreground: #0F172A;
+  --popover: #FFFFFF;
+  --popover-foreground: #0F172A;
+  /* Brand accent — Aashita Blue */
+  --primary: #2563eb;
+  --primary-foreground: #FFFFFF;
+  --brand: #2563eb;
+  --brand-soft: rgba(37, 99, 235, 0.12);
+  --secondary: #F1F5F9;
+  --secondary-foreground: #0F172A;
+  --muted: #E2E8F0;
+  --muted-foreground: #64748B;
+  --accent: #F1F5F9;
+  --accent-foreground: #0F172A;
+  --destructive: #B83E3E;
+  --border: #E2E8F0;
+  --input: #E2E8F0;
+  --ring: #2563eb;
+  /* Reveal-box wipe color for the login-page animated form */
+  --skeleton: #2563eb;
+  --chart-1: #2563eb;
+  --chart-2: #6366f1;
+  --chart-3: #06b6d4;
+  --chart-4: #E2E8F0;
+  --chart-5: #0F172A;
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #0F172A;
+  --sidebar-primary: #2563eb;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F1F5F9;
+  --sidebar-accent-foreground: #0F172A;
+  --sidebar-border: #E2E8F0;
+  --sidebar-ring: #2563eb;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  /* Brand accent — brighter in dark so CTAs pop against the near-black bg. */
-  --primary: oklch(0.62 0.196 274);
-  --primary-foreground: oklch(0.985 0 0);
-  --brand: oklch(0.62 0.196 274);
-  --brand-soft: oklch(0.62 0.196 274 / 16%);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.62 0.196 274);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: #0F172A;
+  --foreground: #F8FAFC;
+  --card: #1E293B;
+  --card-foreground: #F8FAFC;
+  --popover: #1E293B;
+  --popover-foreground: #F8FAFC;
+  /* Brand accent — Slate Blue */
+  --primary: #3b82f6;
+  --primary-foreground: #FFFFFF;
+  --brand: #3b82f6;
+  --brand-soft: rgba(59, 130, 246, 0.16);
+  --secondary: #334155;
+  --secondary-foreground: #F8FAFC;
+  --muted: #334155;
+  --muted-foreground: #94A3B8;
+  --accent: #334155;
+  --accent-foreground: #3b82f6;
+  --destructive: #ef4444;
+  --border: rgba(226, 232, 240, 0.1);
+  --input: rgba(226, 232, 240, 0.15);
+  --ring: #3b82f6;
+  --chart-1: #3b82f6;
+  --chart-2: #6366f1;
+  --chart-3: #06b6d4;
+  --chart-4: #334155;
+  --chart-5: #F8FAFC;
+  --sidebar: #1E293B;
+  --sidebar-foreground: #F8FAFC;
+  --sidebar-primary: #3b82f6;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #334155;
+  --sidebar-accent-foreground: #F8FAFC;
+  --sidebar-border: rgba(226, 232, 240, 0.1);
+  --sidebar-ring: #3b82f6;
 }
 
 @layer base {
@@ -209,31 +209,31 @@
      Dark chapters (--ed-dark) are intentionally identical in both schemes.
   --------------------------------------------------------------------- */
   .editorial {
-    --ed-bg: #f5f4f0;          /* primary chapter background   */
-    --ed-surface: #fafaf8;     /* alternative light surface    */
-    --ed-bg-soft: #f1f0ec;     /* slightly warmer chapter      */
-    --ed-card: rgba(255, 255, 255, 0.5);
-    --ed-ink: #111111;         /* primary text                 */
-    --ed-ink-2: #747474;       /* secondary text               */
-    --ed-line: rgba(17, 17, 17, 0.12);
-    --ed-line-soft: rgba(17, 17, 17, 0.08);
-    --ed-dark: #101010;        /* dark chapter background      */
-    --ed-dark-2: #171717;
-    --ed-ink-on-dark: #f4f4f0;
-    --ed-ink-2-on-dark: #98978f;
-    --ed-line-on-dark: rgba(244, 244, 240, 0.14);
+    --ed-bg: #F8FAFC;          /* warm cream background */
+    --ed-surface: #F1F5F9;     /* alternative warm sand surface */
+    --ed-bg-soft: #E2E8F0;     /* light gray divider surface */
+    --ed-card: rgba(255, 255, 255, 0.6);
+    --ed-ink: #0F172A;         /* primary text */
+    --ed-ink-2: #475569;       /* secondary text (olive) */
+    --ed-line: rgba(15, 23, 42, 0.12);
+    --ed-line-soft: rgba(15, 23, 42, 0.06);
+    --ed-dark: #0F172A;        /* dark chapter background */
+    --ed-dark-2: #1E293B;
+    --ed-ink-on-dark: #F8FAFC;
+    --ed-ink-2-on-dark: #94A3B8;
+    --ed-line-on-dark: rgba(248, 250, 252, 0.12);
     background: var(--ed-bg);
     color: var(--ed-ink);
   }
   .dark .editorial {
-    --ed-bg: #131312;
-    --ed-surface: #171716;
-    --ed-bg-soft: #0f0f0e;
+    --ed-bg: #0F172A;
+    --ed-surface: #1E293B;
+    --ed-bg-soft: #334155;
     --ed-card: rgba(255, 255, 255, 0.04);
-    --ed-ink: #f4f4f0;
-    --ed-ink-2: #8f8f89;
-    --ed-line: rgba(244, 244, 240, 0.14);
-    --ed-line-soft: rgba(244, 244, 240, 0.09);
+    --ed-ink: #F8FAFC;
+    --ed-ink-2: #94A3B8;
+    --ed-line: rgba(248, 250, 252, 0.12);
+    --ed-line-soft: rgba(248, 250, 252, 0.06);
   }
 
   /* Consistent horizontal rhythm: clamp(24px, 4vw, 72px) */
@@ -304,22 +304,22 @@
    palette as you scroll. */
 .ed-aurora-text {
   background-image:
-    radial-gradient(circle at 10% 26%, #e0509a, transparent 40%),
-    radial-gradient(circle at 26% 78%, #8a4fd0, transparent 44%),
-    radial-gradient(circle at 44% 22%, #eab543, transparent 36%),
-    radial-gradient(circle at 60% 80%, #2fb8a8, transparent 40%),
-    radial-gradient(circle at 74% 28%, #d0369c, transparent 40%),
-    radial-gradient(circle at 88% 74%, #6a3fb5, transparent 42%),
-    radial-gradient(circle at 96% 34%, #eab543, transparent 38%),
+    radial-gradient(circle at 10% 26%, #F1F5F9, transparent 40%),
+    radial-gradient(circle at 26% 78%, #2563eb, transparent 44%),
+    radial-gradient(circle at 44% 22%, #6366f1, transparent 36%),
+    radial-gradient(circle at 60% 80%, #F1F5F9, transparent 40%),
+    radial-gradient(circle at 74% 28%, #2563eb, transparent 40%),
+    radial-gradient(circle at 88% 74%, #6366f1, transparent 42%),
+    radial-gradient(circle at 96% 34%, #F1F5F9, transparent 38%),
     linear-gradient(
       100deg,
-      #6a3fb5,
-      #d0369c,
-      #eab543,
-      #2fb8a8,
-      #8a4fd0,
-      #e0509a,
-      #6a3fb5
+      #2563eb,
+      #F1F5F9,
+      #6366f1,
+      #CBD5E1,
+      #2563eb,
+      #F1F5F9,
+      #2563eb
     );
   background-size: 260% 100%;
   -webkit-background-clip: text;
