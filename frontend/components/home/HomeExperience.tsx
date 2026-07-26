@@ -8,6 +8,7 @@ import HomeHero from "@/components/home/HomeHero";
 import SelectedThemes from "@/components/home/SelectedThemes";
 import BrandStatement from "@/components/home/BrandStatement";
 import DetailsShowcase from "@/components/home/DetailsShowcase";
+import WhatWeDo from "@/components/home/WhatWeDo";
 import IndustryExplorer, { type IndustryEntry } from "@/components/home/IndustryExplorer";
 import FeaturedRelease from "@/components/home/FeaturedRelease";
 import WhyKayease from "@/components/home/WhyKayease";
@@ -111,6 +112,7 @@ export default function HomeExperience({
           <SelectedThemes themes={derived.selected} />
           <BrandStatement />
           <DetailsShowcase themes={derived.selected} />
+          <WhatWeDo />
           <IndustryExplorer entries={derived.entries} />
           <FeaturedRelease theme={derived.newest} />
           <WhyKayease stats={derived.stats} />

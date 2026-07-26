@@ -6,6 +6,7 @@ import Lenis from "lenis";
 import { MotionConfig, useReducedMotion } from "motion/react";
 import { CursorProvider } from "@/components/home/cursor";
 import ArchiveHeader from "@/components/archive/ArchiveHeader";
+import HeroMorph from "@/components/archive/HeroCards";
 import DiscoveryBar from "@/components/archive/DiscoveryBar";
 import ThemeGallery from "@/components/archive/ThemeGallery";
 import IndexView from "@/components/archive/IndexView";
@@ -82,18 +83,65 @@ export default function ArchiveExperience({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  /* Lenis smooth scroll — same setup as the homepage shell, so both pages
-     share one motion feel. Native scrollTop under the hood: sticky bars and
-     IntersectionObserver keep working. */
+  /* Own the scroll so the browser never restores/anchors us away from the top. */
+  useEffect(() => {
+    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+    window.scrollTo(0, 0);
+  }, []);
+
+  /* Lenis smooth scroll — same setup as the homepage shell. We lenis.stop() and
+     hold the page at the top until the user actually scrolls (or a long
+     fallback), so involuntary load-time scroll (Lenis momentum / layout shifts /
+     image loads) can never drag the page — and thus the morph — off the arc
+     before the entrance has played. The user's first scroll releases it. */
   useEffect(() => {
     if (reduced) return;
+    const html = document.documentElement;
     const lenis = new Lenis({ lerp: 0.115 });
+    lenis.scrollTo(0, { immediate: true });
+    lenis.stop();
+    // genuinely non-scrollable so NOTHING (native anchoring, Lenis, layout
+    // shifts) can move the page off the arc during the entrance
+    html.style.overflow = "hidden";
+    window.scrollTo(0, 0);
+    let released = false;
+    const release = () => {
+      if (released) return;
+      released = true;
+      html.style.overflow = "";
+      lenis.scrollTo(0, { immediate: true });
+      lenis.start();
+      window.removeEventListener("wheel", release);
+      window.removeEventListener("touchstart", release);
+      window.removeEventListener("pointerdown", release);
+      window.removeEventListener("keydown", onKey);
+      clearTimeout(fallback);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (["ArrowDown", "ArrowUp", "PageDown", "PageUp", "Home", "End", " "].includes(e.key))
+        release();
+    };
+    // don't listen until the intro is underway, so an early flick can't skip it
+    const arm = setTimeout(() => {
+      window.addEventListener("wheel", release, { passive: true });
+      window.addEventListener("touchstart", release, { passive: true });
+      window.addEventListener("pointerdown", release, { passive: true });
+      window.addEventListener("keydown", onKey);
+    }, 3200);
+    const fallback = setTimeout(release, 9000);
     let raf = requestAnimationFrame(function loop(time) {
       lenis.raf(time);
       raf = requestAnimationFrame(loop);
     });
     return () => {
+      clearTimeout(arm);
+      clearTimeout(fallback);
+      window.removeEventListener("wheel", release);
+      window.removeEventListener("touchstart", release);
+      window.removeEventListener("pointerdown", release);
+      window.removeEventListener("keydown", onKey);
       cancelAnimationFrame(raf);
+      html.style.overflow = "";
       lenis.destroy();
     };
   }, [reduced]);
@@ -170,6 +218,17 @@ export default function ArchiveExperience({
   const activeFilterCount =
     (filters.category ? 1 : 0) + (filters.framework ? 1 : 0) + (filters.pricing ? 1 : 0);
 
+  /* ---- hero → grid morph: only on the pristine, unfiltered grid ---- */
+  const galleryGridRef = useRef<HTMLUListElement>(null);
+  const [landed, setLanded] = useState(false);
+  const morphActive =
+    view === "grid" &&
+    activeFilterCount === 0 &&
+    filters.search.trim() === "" &&
+    filters.sort === "" &&
+    filtered.length > 0;
+  const morphN = morphActive ? Math.min(9, filtered.length) : 0;
+
   return (
     <MotionConfig reducedMotion="user">
       <CursorProvider>
@@ -201,6 +260,15 @@ export default function ArchiveExperience({
             onOpenFilters={() => setDrawerOpen(true)}
           />
 
+          {/* the covers fly from the hero arc into the real gallery cells */}
+          <HeroMorph
+            themes={filtered}
+            count={morphN}
+            gridRef={galleryGridRef}
+            active={morphActive}
+            onLanded={setLanded}
+          />
+
           <div ref={galleryRef} className="scroll-mt-36">
             {view === "grid" ? (
               <ThemeGallery
@@ -212,6 +280,9 @@ export default function ArchiveExperience({
                 view={view}
                 setView={setView}
                 onQuickView={setQuickView}
+                gridRef={galleryGridRef}
+                morphCount={morphN}
+                morphLanded={landed}
               />
             ) : (
               <IndexView

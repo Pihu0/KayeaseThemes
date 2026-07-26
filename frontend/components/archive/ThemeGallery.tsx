@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
@@ -22,7 +22,6 @@ import type { Theme } from "@/lib/types";
 
 const INITIAL_VISIBLE = 12;
 const LOAD_STEP = 9;
-const BREAK_AFTER = 9; // editorial break slots in after this many cards
 
 export default function ThemeGallery({
   themes,
@@ -33,6 +32,9 @@ export default function ThemeGallery({
   view,
   setView,
   onQuickView,
+  gridRef,
+  morphCount = 0,
+  morphLanded = false,
 }: {
   themes: Theme[];
   allThemes: Theme[];
@@ -42,14 +44,24 @@ export default function ThemeGallery({
   view: "grid" | "index";
   setView: (v: "grid" | "index") => void;
   onQuickView: (t: Theme) => void;
+  /** the hero-morph overlay measures these cells to fly its covers into them */
+  gridRef?: React.Ref<HTMLUListElement>;
+  /** first N cards are marked (always) as morph targets… */
+  morphCount?: number;
+  /** …and kept invisible (but laid out + measurable) until the morph lands */
+  morphLanded?: boolean;
 }) {
-  /* reset progressive loading whenever the result set changes */
+  /* reset progressive loading whenever the result set changes (derive during
+     render — the React-recommended way to reset state on a prop change) */
   const filterKey = useMemo(() => JSON.stringify(filters), [filters]);
   const [visible, setVisible] = useState(INITIAL_VISIBLE);
-  useEffect(() => setVisible(INITIAL_VISIBLE), [filterKey]);
+  const [seenKey, setSeenKey] = useState(filterKey);
+  if (filterKey !== seenKey) {
+    setSeenKey(filterKey);
+    setVisible(INITIAL_VISIBLE);
+  }
 
   const shown = themes.slice(0, visible);
-  const hasBreak = shown.length > BREAK_AFTER;
 
   return (
     <section
@@ -69,24 +81,38 @@ export default function ThemeGallery({
         <EmptyState search={filters.search} clearAll={clearAll} suggestions={allThemes.slice(0, 3)} />
       ) : (
         <>
-          <ul className="grid grid-cols-1 gap-x-8 gap-y-14 sm:grid-cols-2 xl:grid-cols-3">
+          <ul
+            ref={gridRef}
+            className="grid grid-cols-1 gap-x-8 gap-y-14 sm:grid-cols-2 xl:grid-cols-3"
+          >
             <AnimatePresence mode="popLayout" initial={false}>
               {shown.flatMap((theme, i) => {
+                const isMorphCell = i < morphCount; // always marked, so measurable
+                const morphHidden = isMorphCell && !morphLanded; // covered by overlay
                 const card = (
                   <motion.li
                     key={theme._id}
                     layout
+                    data-morph-cell={isMorphCell ? i : undefined}
                     initial={{ opacity: 0, y: 20, scale: 0.98 }}
-                    animate={{
-                      opacity: 1,
-                      y: 0,
-                      scale: 1,
-                      transition: {
-                        duration: 0.45,
-                        ease: EASE_SOFT,
-                        delay: Math.min((i % LOAD_STEP) * 0.04, 0.3),
-                      },
-                    }}
+                    animate={
+                      morphHidden
+                        ? { opacity: 0, y: 0, scale: 1 }
+                        : isMorphCell
+                          ? // revealed *under* the overlay's crossfade — appear
+                            // instantly in final position, no entrance of our own
+                            { opacity: 1, y: 0, scale: 1, transition: { duration: 0 } }
+                          : {
+                              opacity: 1,
+                              y: 0,
+                              scale: 1,
+                              transition: {
+                                duration: 0.45,
+                                ease: EASE_SOFT,
+                                delay: Math.min((i % LOAD_STEP) * 0.04, 0.3),
+                              },
+                            }
+                    }
                     exit={{ opacity: 0, scale: 0.98, transition: { duration: 0.3 } }}
                     transition={{ layout: { duration: 0.5, ease: EASE_SOFT } }}
                   >
@@ -98,10 +124,6 @@ export default function ThemeGallery({
                     />
                   </motion.li>
                 );
-                // full-width editorial break inside the flow of the archive
-                if (hasBreak && i === BREAK_AFTER - 1) {
-                  return [card, <DiscoveryBreak key="discovery-break" />];
-                }
                 return [card];
               })}
             </AnimatePresence>
@@ -131,42 +153,6 @@ export default function ThemeGallery({
         </>
       )}
     </section>
-  );
-}
-
-/* Full-width typographic pause inside the gallery — not an advertisement,
-   just an editorial pointer to the Theme Finder further down. */
-function DiscoveryBreak() {
-  return (
-    <motion.li
-      layout
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0, transition: { duration: 0.3 } }}
-      transition={{ layout: { duration: 0.5, ease: EASE_SOFT } }}
-      className="col-span-full border-y border-(--ed-line) py-16 sm:py-20"
-    >
-      <div className="grid gap-8 lg:grid-cols-12 lg:items-end">
-        <MaskedLines
-          as="p"
-          lines={["Can't find", "the right fit?"]}
-          className="ed-display text-[clamp(1.9rem,4vw,3.75rem)] lg:col-span-8"
-        />
-        <div className="lg:col-span-4 lg:justify-self-end">
-          <p className="max-w-xs text-[15px] leading-relaxed text-(--ed-ink-2)">
-            Tell us what you&rsquo;re building and we&rsquo;ll help you find a
-            starting point.
-          </p>
-          <a
-            href="#theme-finder"
-            className="ed-underline mt-5 inline-flex items-center gap-1.5 text-[13px] font-medium uppercase tracking-[0.14em] text-(--ed-ink)"
-          >
-            Find my theme
-            <ArrowUpRight aria-hidden className="size-3.5" />
-          </a>
-        </div>
-      </div>
-    </motion.li>
   );
 }
 

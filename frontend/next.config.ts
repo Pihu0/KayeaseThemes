@@ -8,6 +8,9 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "res.cloudinary.com" },
       { protocol: "https", hostname: "img.kayease.com" },
+      // Login-page orbit tech icons + Google logo (21st.dev animated sign-in)
+      { protocol: "https", hostname: "cdn.jsdelivr.net" },
+      { protocol: "https", hostname: "cdn1.iconfinder.com" },
     ],
   },
 };
