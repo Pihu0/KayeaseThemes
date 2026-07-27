@@ -71,11 +71,13 @@ function CheckeredGrid() {
     if (!target || !target.classList.contains("grid-cell")) return;
     if (target.classList.contains("cell-active")) return;
 
-    // Reset sequence back to 'K' after 1.5s of hover inactivity
+    // Only restart at 'K' once the trail has fully faded (2s idle > the 1.1s
+    // letter life). This keeps a brief pause mid-word from snapping back to 'K'
+    // — the sequence quietly finishes the word instead of stuttering.
     if (resetTimeoutRef.current) clearTimeout(resetTimeoutRef.current);
     resetTimeoutRef.current = setTimeout(() => {
       currentLetterIdxRef.current = 0;
-    }, 1500);
+    }, 2000);
 
     const letters = ["K", "A", "Y", "E", "A", "S", "E"];
     const char = letters[currentLetterIdxRef.current];
@@ -85,14 +87,16 @@ function CheckeredGrid() {
     target.textContent = char;
     target.classList.add("cell-active");
 
-    // Smooth transition back to transparent and empty text (snappier 0.5s duration)
+    // Hold each letter ~1.1s so several consecutive cells stay lit at once —
+    // long enough for the whole "KAYEASE" to trail behind the cursor and read
+    // as the word, rather than 2–3 letters that look random.
     setTimeout(() => {
       target.classList.remove("cell-active");
       // Double check that the cell's text hasn't been updated by a new hover
       if (target.textContent === char) {
         target.textContent = "";
       }
-    }, 500);
+    }, 1100);
   };
 
   return (
@@ -120,7 +124,7 @@ function CheckeredGrid() {
           font-family: var(--font-heading), sans-serif;
           color: transparent;
           border: 0.5px solid transparent;
-          transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+          transition: all 0.9s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .grid-cell.cell-active {
           color: var(--primary);
@@ -158,7 +162,10 @@ export default function WhatWeDo() {
   const isDesktop = useIsDesktop();
   const [active, setActive] = useState(3);
 
-  const spread = isDesktop ? 1 : 0.58;
+  // Horizontal fan of the deck. Desktop has room for the full ±258px offset;
+  // on phones we pull it in hard (0.27) so the side cards tuck behind the centre
+  // and their outer edges stay inside the viewport instead of clipping.
+  const spread = isDesktop ? 1 : 0.27;
   const len = ITEMS.length;
 
   return (
@@ -169,7 +176,7 @@ export default function WhatWeDo() {
       <CheckeredGrid />
 
       <h2
-        style={{ fontFamily: "var(--font-heading)" }}
+        style={{ fontFamily: "var(--font-display)" }}
         className="relative z-10 text-center text-[clamp(2.25rem,6vw,3.5rem)] font-bold tracking-tight text-(--primary)"
       >
         What We Do
@@ -180,7 +187,7 @@ export default function WhatWeDo() {
       </p>
 
       {/* perspective lives on the deck so each card's rotateY has real depth */}
-      <div className="relative z-10 mx-auto mt-14 flex h-[600px] w-full max-w-6xl items-center justify-center [perspective:1800px] sm:mt-16 pointer-events-none">
+      <div className="relative z-10 mx-auto mt-14 flex h-[440px] w-full max-w-6xl items-center justify-center [perspective:1800px] sm:mt-16 sm:h-[600px] pointer-events-none">
         {ITEMS.map((item, i) => {
           const raw = (i - active + len) % len;
           const s = slotFor(raw);
@@ -216,25 +223,25 @@ export default function WhatWeDo() {
                 pointerEvents: s.opacity === 0 ? "none" : "auto",
                 transformStyle: "preserve-3d",
               }}
-              className="absolute h-[380px] w-[280px] cursor-pointer rounded-[28px] text-left outline-none pointer-events-auto"
+              className="absolute h-[300px] w-[190px] cursor-pointer rounded-[24px] text-left outline-none pointer-events-auto sm:h-[380px] sm:w-[280px] sm:rounded-[28px]"
             >
               {/* FRONT — content (title + body + centre CTA) */}
               <motion.div
                 animate={{ backgroundColor: s.bg }}
                 transition={{ duration: 0.85, ease: EASE }}
-                className="absolute inset-0 flex flex-col rounded-[28px] p-7 [backface-visibility:hidden] shadow-[0_30px_70px_-25px_rgba(0,0,0,0.8)]"
+                className="absolute inset-0 flex flex-col rounded-[24px] p-6 [backface-visibility:hidden] shadow-[0_30px_70px_-25px_rgba(0,0,0,0.8)] sm:rounded-[28px] sm:p-7"
               >
                 <h3
                   style={{ fontFamily: "var(--font-heading)" }}
-                  className="whitespace-pre-line text-[25px] font-bold leading-[1.12] tracking-[-0.5px] text-white"
+                  className="whitespace-pre-line text-[21px] font-bold leading-[1.12] tracking-[-0.5px] text-white sm:text-[25px]"
                 >
                   {item.title}
                 </h3>
-                <p className="mt-auto max-w-[210px] text-[14px] leading-relaxed text-white/90">
+                <p className="mt-auto max-w-[170px] text-[13px] leading-relaxed text-white/90 sm:max-w-[210px] sm:text-[14px]">
                   {item.body}
                 </p>
                 {s.cta && (
-                  <span className="absolute left-1/2 top-1/2 flex h-24 w-24 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-(--secondary) text-sm font-semibold text-(--secondary-foreground) shadow-lg">
+                  <span className="absolute left-1/2 top-1/2 hidden h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-(--secondary) text-[13px] font-semibold text-(--secondary-foreground) shadow-lg sm:flex sm:h-24 sm:w-24 sm:text-sm">
                     Explore
                   </span>
                 )}
@@ -244,11 +251,11 @@ export default function WhatWeDo() {
               <motion.div
                 animate={{ backgroundColor: s.bg }}
                 transition={{ duration: 0.85, ease: EASE }}
-                className="absolute inset-0 flex items-center rounded-[28px] p-7 [backface-visibility:hidden] [transform:rotateY(180deg)] shadow-[0_30px_70px_-25px_rgba(0,0,0,0.8)]"
+                className="absolute inset-0 flex items-center rounded-[24px] p-6 [backface-visibility:hidden] [transform:rotateY(180deg)] shadow-[0_30px_70px_-25px_rgba(0,0,0,0.8)] sm:rounded-[28px] sm:p-7"
               >
                 <span
                   style={{ fontFamily: "var(--font-heading)" }}
-                  className="text-[110px] font-bold leading-none tracking-[-6px] text-white"
+                  className="text-[80px] font-bold leading-none tracking-[-4px] text-white sm:text-[110px] sm:tracking-[-6px]"
                 >
                   {item.n}
                 </span>

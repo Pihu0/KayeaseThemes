@@ -77,7 +77,7 @@ export default function PrivacyPolicyPage() {
       <LegalSection heading="7. Contact us">
         <p>
           Questions about this policy? Reach out via our{" "}
-          <Link href="/contact">contact page</Link> or email{" "}
+          <Link href="/customdesign">contact page</Link> or email{" "}
           <a href="mailto:team@kayease.com">team@kayease.com</a>.
         </p>
       </LegalSection>

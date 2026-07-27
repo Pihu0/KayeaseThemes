@@ -10,13 +10,12 @@ import Logo from "@/components/Logo";
 // internal routes use next/link; external (github / mailto) stay plain <a>
 const NAV_EXPLORE = [
   { href: "/themes", label: "Themes" },
-  { href: "/contact", label: "Custom Design" },
-  { href: "/contact", label: "Contact" },
+  { href: "/customdesign", label: "Custom Design" },
+  { href: "/customdesign", label: "Contact" },
 ];
 
 const NAV_COMPANY = [
   { href: "/login", label: "Log in" },
-  { href: "/register", label: "Sign up" },
   { href: "/privacy-policy", label: "Privacy Policy" },
   { href: "/terms", label: "Terms of Use" },
 ];

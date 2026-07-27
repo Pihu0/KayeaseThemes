@@ -18,6 +18,7 @@ import { apiFetch } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import TagInput from "@/components/admin/TagInput";
 import ImageUpload from "@/components/admin/ImageUpload";
@@ -37,8 +38,6 @@ const FRAMEWORKS = [
 ];
 const FORMATS = ["ZIP", "RAR", "TAR"];
 
-const selectClass =
-  "h-9 w-full rounded-lg border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 // A titled card section
 function Section({
@@ -155,7 +154,10 @@ export default function ThemeForm({ theme }: { theme?: Theme }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.title || !form.description || !form.category || !form.price) {
+    // Price is only required for premium themes — free themes are forced to 0
+    // below, so an empty price field is valid for them.
+    const priceMissing = form.pricingType === "premium" && !form.price;
+    if (!form.title || !form.description || !form.category || priceMissing) {
       toast.error("Please fill in the required fields (name, description, category, price).");
       return;
     }
@@ -292,18 +294,12 @@ export default function ThemeForm({ theme }: { theme?: Theme }) {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label>Framework</Label>
-                <select
+                <Select
                   value={form.framework}
-                  onChange={(e) => set("framework", e.target.value)}
-                  className={selectClass}
-                >
-                  <option value="">Select framework</option>
-                  {FRAMEWORKS.map((f) => (
-                    <option key={f} value={f}>
-                      {f}
-                    </option>
-                  ))}
-                </select>
+                  onValueChange={(v) => set("framework", v)}
+                  placeholder="Select framework"
+                  options={FRAMEWORKS.map((f) => ({ value: f, label: f }))}
+                />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="version">Version</Label>
@@ -434,16 +430,14 @@ export default function ThemeForm({ theme }: { theme?: Theme }) {
           <Section icon={<Globe className="h-5 w-5" />} title="Publishing">
             <div className="space-y-1.5">
               <Label>Status</Label>
-              <select
+              <Select
                 value={form.status}
-                onChange={(e) =>
-                  set("status", e.target.value as FormState["status"])
-                }
-                className={selectClass}
-              >
-                <option value="published">Published</option>
-                <option value="draft">Draft</option>
-              </select>
+                onValueChange={(v) => set("status", v as FormState["status"])}
+                options={[
+                  { value: "published", label: "Published" },
+                  { value: "draft", label: "Draft" },
+                ]}
+              />
             </div>
             <label className="flex cursor-pointer items-center justify-between">
               <span className="text-sm font-medium">Visible on site</span>
@@ -524,19 +518,16 @@ export default function ThemeForm({ theme }: { theme?: Theme }) {
               <Label>
                 Category <span className="text-destructive">*</span>
               </Label>
-              <select
+              <Select
                 value={form.category}
-                onChange={(e) => set("category", e.target.value)}
-                className={selectClass}
+                onValueChange={(v) => set("category", v)}
+                placeholder="Select category"
                 required
-              >
-                <option value="">Select category</option>
-                {categories.map((c) => (
-                  <option key={c._id} value={c.name}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+                options={categories.map((c) => ({
+                  value: c.name,
+                  label: c.name,
+                }))}
+              />
             </div>
             <TagInput
               label="Tags"
@@ -547,17 +538,11 @@ export default function ThemeForm({ theme }: { theme?: Theme }) {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label>Format</Label>
-                <select
+                <Select
                   value={form.fileFormat}
-                  onChange={(e) => set("fileFormat", e.target.value)}
-                  className={selectClass}
-                >
-                  {FORMATS.map((f) => (
-                    <option key={f} value={f}>
-                      {f}
-                    </option>
-                  ))}
-                </select>
+                  onValueChange={(v) => set("fileFormat", v)}
+                  options={FORMATS.map((f) => ({ value: f, label: f }))}
+                />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="fileSize">Size</Label>

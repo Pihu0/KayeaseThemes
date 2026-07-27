@@ -3,7 +3,17 @@
 import { useEffect, useRef, useState } from "react";
 import { animate, motion, useInView, useReducedMotion } from "motion/react";
 import { EASE } from "@/lib/motion";
-import { Zap, Monitor, Cpu } from "lucide-react";
+import { Zap, Monitor, Cpu, type LucideIcon } from "lucide-react";
+
+type WhyBlock = {
+  n: string;
+  title: string;
+  description: string;
+  statValue: number;
+  statLabel: string;
+  icon: LucideIcon;
+  isTop: boolean;
+};
 
 export type RealStats = {
   themes: number;
@@ -53,7 +63,7 @@ export default function WhyKayease({ stats }: { stats: RealStats }) {
     >
       <div className="ed-px mx-auto max-w-[1400px]">
         <h2
-          style={{ fontFamily: "var(--font-heading)" }}
+          style={{ fontFamily: "var(--font-display)" }}
           className="relative z-10 text-center text-[clamp(2.25rem,6vw,3.5rem)] font-bold tracking-tight text-(--primary)"
         >
           Why Kayease
@@ -139,9 +149,9 @@ function CardBody({
   index,
   icon: Icon,
 }: {
-  block: any;
+  block: WhyBlock;
   index: number;
-  icon: any;
+  icon: LucideIcon;
 }) {
   return (
     <motion.div

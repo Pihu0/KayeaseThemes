@@ -9,11 +9,11 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-sm hover:border-purple-600 active:scale-[0.98]",
+          "bg-primary text-primary-foreground shadow-sm hover:border-primary active:scale-[0.98]",
         outline:
-          "border-border bg-background text-foreground hover:border-purple-600 aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30",
+          "border-border bg-background text-foreground hover:border-primary aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30",
         secondary:
-          "bg-secondary text-secondary-foreground hover:border-purple-600 aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+          "bg-secondary text-secondary-foreground hover:border-primary aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
         ghost:
           "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
         destructive:
@@ -45,11 +45,17 @@ function Button({
   className,
   variant = "default",
   size = "default",
+  sweep = false,
   children,
   ...props
-}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+}: ButtonPrimitive.Props &
+  VariantProps<typeof buttonVariants> & {
+    /** Force the brand-blue hover sweep on, even for ghost/link/icon variants
+        that are plain by default. Opt-in so the public site is unaffected. */
+    sweep?: boolean
+  }) {
   const isIcon = size?.startsWith("icon")
-  const isPlain = variant === "link" || variant === "ghost" || isIcon
+  const isPlain = (variant === "link" || variant === "ghost" || isIcon) && !sweep
 
   return (
     <ButtonPrimitive
@@ -58,7 +64,7 @@ function Button({
       {...props}
     >
       {!isPlain && (
-        <span className="w-56 h-56 rounded rotate-[-40deg] bg-purple-600 absolute bottom-0 left-0 -translate-x-full ease-out duration-500 transition-all translate-y-full mb-9 ml-9 group-hover/button:ml-0 group-hover/button:mb-32 group-hover/button:translate-x-0 pointer-events-none" />
+        <span aria-hidden className="pointer-events-none absolute -inset-y-6 left-[-25%] w-[150%] -translate-x-[160%] skew-x-[-16deg] bg-blue-700 transition-transform duration-500 ease-out group-hover/button:translate-x-0" />
       )}
       <span className={cn("relative z-10 inline-flex items-center justify-center gap-1.5 w-full transition-colors duration-300 ease-in-out", !isPlain && "group-hover/button:text-white")}>
         {children}

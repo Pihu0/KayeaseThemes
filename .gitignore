@@ -1,0 +1,15 @@
+# OS junk
+.DS_Store
+**/.DS_Store
+
+# Dependencies
+node_modules/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Local-only helper scripts & notes (not part of the submission)
+push.sh
+mail.md

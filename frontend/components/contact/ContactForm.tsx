@@ -9,8 +9,7 @@ import { EASE } from "@/lib/motion";
 import MaskedLines from "@/components/motion/MaskedLines";
 import Magnetic from "@/components/motion/Magnetic";
 import TextRoll from "@/components/motion/TextRoll";
-import { AnimatedButton } from "@/components/ui/animated-button";
-import { SectionLabel } from "@/components/home/editorial";
+import { SectionLabel, EdButton } from "@/components/home/editorial";
 import {
   BUILD_TYPES,
   BUDGETS,
@@ -141,7 +140,7 @@ export default function ContactForm() {
   return (
     <form onSubmit={handleSubmit} noValidate className="pt-2">
       {/* name + email row */}
-      <div className="grid gap-x-10 gap-y-9 sm:grid-cols-2">
+      <div className="grid gap-x-6 gap-y-6 sm:grid-cols-2">
         <UnderlineField
           label="Full name"
           name="fullName"
@@ -166,7 +165,7 @@ export default function ContactForm() {
       </div>
 
       {/* brand name */}
-      <div className="mt-9">
+      <div className="mt-6">
         <UnderlineField
           label="Business / brand name"
           name="company"
@@ -182,7 +181,7 @@ export default function ContactForm() {
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.15, ease: EASE }}
-        className="mt-11 space-y-11"
+        className="mt-8 space-y-8"
       >
         <OptionSelector
           label="What are you building?"
@@ -191,7 +190,7 @@ export default function ContactForm() {
           value={f.buildType}
           onChange={(v) => set("buildType", v)}
         />
-        <div className="grid gap-x-10 gap-y-11 sm:grid-cols-2">
+        <div className="grid gap-x-6 gap-y-8 sm:grid-cols-2">
           <OptionSelector
             label="Budget range"
             name="budget"
@@ -210,7 +209,7 @@ export default function ContactForm() {
       </motion.div>
 
       {/* vision textarea */}
-      <div className="mt-11">
+      <div className="mt-8">
         <UnderlineTextarea
           label="Your vision"
           name="message"
@@ -246,13 +245,13 @@ export default function ContactForm() {
               </p>
             </div>
           )}
-          <AnimatedButton
+          <EdButton
             type="submit"
             disabled={status === "sending"}
             icon={<ArrowUpRight className="size-4" />}
           >
             {status === "sending" ? "Sending…" : status === "error" ? "Try again" : "Send request"}
-          </AnimatedButton>
+          </EdButton>
         </div>
       </div>
     </form>

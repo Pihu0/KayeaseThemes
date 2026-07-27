@@ -18,9 +18,8 @@ import {
   type Variants,
 } from "motion/react";
 import { EASE, useIsDesktop } from "@/lib/motion";
-import Magnetic from "@/components/motion/Magnetic";
 import TextRoll from "@/components/motion/TextRoll";
-import { SectionLabel } from "@/components/home/editorial";
+import { SectionLabel, EdButton } from "@/components/home/editorial";
 import { useProjectCursor } from "@/components/home/cursor";
 import type { Theme } from "@/lib/types";
 import { ArrowRight } from "lucide-react";
@@ -37,9 +36,6 @@ import { ArrowRight } from "lucide-react";
    and the hero hands over to the Selected Themes chapter. */
 
 const EYEBROW = "Kayease® / Digital Theme Studio";
-const MARQUEE = "Your Next Website Shouldn't Look Familiar";
-const TAGLINE =
-  "Distinctive, production-ready themes for brands that care about every detail.";
 
 function getThemeColors(slug: string) {
   const s = slug.toLowerCase();
@@ -59,7 +55,7 @@ function getThemeColors(slug: string) {
 function CountUp({ value, suffix = "" }: { value: number; suffix?: string }) {
   const [displayValue, setDisplayValue] = useState(0);
   useEffect(() => {
-    let start = 0;
+    const start = 0;
     const end = value;
     if (start === end) return;
     const duration = 1.2;
@@ -124,14 +120,25 @@ export default function HomeHero({
 }) {
   const reduced = useReducedMotion();
   const desktop = useIsDesktop();
-  const morphOn = desktop && !reduced;
+  // The scroll-driven peel deck now runs on EVERY viewport (peelOn). deskFx layers
+  // on the desktop-only richness — custom cursor, left text panel, the 21% right
+  // offset, the oversized card and the pointer-follow tilt — none of which make
+  // sense on a phone. Reduced-motion drops both back to the static single card.
+  const peelOn = !reduced;
+  const deskFx = desktop && !reduced;
 
   const deck = themes.filter((t): t is Theme => Boolean(t)).slice(0, 5);
 
   if (deck.length === 0) return null;
 
   return (
-    <HeroRunway deck={deck} total={total} morphOn={morphOn} reduced={!!reduced} />
+    <HeroRunway
+      deck={deck}
+      total={total}
+      peelOn={peelOn}
+      deskFx={deskFx}
+      reduced={!!reduced}
+    />
   );
 }
 
@@ -139,12 +146,14 @@ export default function HomeHero({
 function HeroRunway({
   deck,
   total,
-  morphOn,
+  peelOn,
+  deskFx,
   reduced,
 }: {
   deck: Theme[];
   total: number;
-  morphOn: boolean;
+  peelOn: boolean;
+  deskFx: boolean;
   reduced: boolean;
 }) {
   const runwayRef = useRef<HTMLElement>(null);
@@ -182,11 +191,17 @@ function HeroRunway({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* ---- intro state machine: loading → exiting → done ---- */
-  const [phase, setPhase] = useState<"loading" | "exiting" | "done">(
+  /* ---- intro state machine: loading → fullwidth → wiping → done ----
+     loading:   dark overlay with progress counter
+     fullwidth: overlay dissolves, full-width hero banner visible, holds for a beat
+     wiping:    staggered curtain columns sweep down over the full-width banner,
+                vanishing it and revealing the small cards deck behind the sweep
+     done:      everything settled, left panel fades in, scroll-peel active ---- */
+  const [phase, setPhase] = useState<"loading" | "fullwidth" | "wiping" | "done">(
     skipIntro ? "done" : "loading"
   );
   const [pct, setPct] = useState(skipIntro ? 100 : 0);
+  const [deckReady, setDeckReady] = useState(skipIntro);
 
   // drive the loader progress bar
   useEffect(() => {
@@ -197,18 +212,24 @@ function HeroRunway({
       const p = Math.min(1, (now - start) / 1150);
       setPct(Math.round(p * 100));
       if (p < 1) raf = requestAnimationFrame(tick);
-      else setPhase("exiting");
+      else setPhase("fullwidth");
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, [skipIntro]);
 
-  // curtains lift (~1.1s), the front card holds full-width for a beat, then
-  // shrinks into the deck (~1s). Keep the loader mounted until that all clears.
+  // fullwidth → wiping: hold full-width banner for 1.4s, then start curtain wipe
   useEffect(() => {
-    if (phase !== "exiting") return;
+    if (phase !== "fullwidth") return;
     introPlayed = true;
-    const id = setTimeout(() => setPhase("done"), 2500);
+    const id = setTimeout(() => setPhase("wiping"), 1400);
+    return () => clearTimeout(id);
+  }, [phase]);
+
+  // wiping → done: curtain sweep takes ~1.5s; transition to done when panels clear
+  useEffect(() => {
+    if (phase !== "wiping") return;
+    const id = setTimeout(() => setPhase("done"), 1600);
     return () => clearTimeout(id);
   }, [phase]);
 
@@ -248,7 +269,7 @@ function HeroRunway({
      swaps to the next card around the midpoint of each card's peel. */
   const [activeIndex, setActiveIndex] = useState(0);
   useMotionValueEvent(scrollYProgress, "change", (p) => {
-    if (!morphOn) return;
+    if (!peelOn) return;
     const segLen = (PEEL_END - PEEL_HOLD) / Math.max(1, L - 1);
     let a = 0;
     if (p > PEEL_HOLD) {
@@ -285,14 +306,23 @@ function HeroRunway({
       ref={runwayRef}
       aria-label="Kayease Themes introduction"
       className="relative select-none"
-      style={morphOn ? { height: `${L * 100}vh` } : undefined}
+      style={peelOn ? { height: `${L * 100}vh` } : undefined}
     >
-      {phase !== "done" && <HeroLoader phase={phase} pct={pct} />}
+      {/* dark overlay loader — fades out to reveal the full-width banner */}
+      {(phase === "loading" || phase === "fullwidth") && (
+        <HeroLoader phase={phase} pct={pct} />
+      )}
+      {/* curtain wipe — sweeps over full-width banner to vanish it & reveal deck */}
+      {phase === "wiping" && (
+        <CurtainWipe onMidpoint={() => setDeckReady(true)} />
+      )}
 
       <div
         className={
           "relative flex flex-col overflow-clip " +
-          (morphOn ? "sticky top-0 h-screen" : "min-h-svh py-32")
+          (peelOn
+            ? "sticky top-0 h-screen justify-center"
+            : "min-h-svh justify-center py-24")
         }
       >
         {/* ---- giant headline marquee, centred behind the deck ---- */}
@@ -308,7 +338,7 @@ function HeroRunway({
               exit={{ opacity: 0, scale: 1.05 }}
               transition={{ duration: 0.8, ease: EASE }}
               style={
-                morphOn
+                peelOn
                   ? { x: marqueeX, scale: marqueeScale, opacity: marqueeOpacity }
                   : { opacity: 0.05 }
               }
@@ -389,7 +419,7 @@ function HeroRunway({
 
         {/* ---- left text panel (desktop): fades in once the deck settles,
              then swaps its copy to the active card as you scroll ---- */}
-        {morphOn && (
+        {deskFx && (
           <motion.div
             initial={false}
             animate={{
@@ -539,19 +569,19 @@ function HeroRunway({
           initial={false}
           /* Always a defined target (never undefined) so the settled offset is
              delivered as a real prop change. When the intro is skipped, `settled`
-             is true from the first render and only `morphOn` flips false→true
-             after mount; if this were gated to `undefined` while non-morph,
+             is true from the first render and only `deskFx` flips false→true
+             after mount; if this were gated to `undefined` while non-desktop,
              Framer would skip applying the +21% and the deck would overlap the
              copy (seen after a browser back-nav). */
           animate={{
-            x: morphOn && settled ? "21%" : "0%",
-            scale: morphOn && settled ? 0.9 : 1,
+            x: deskFx && settled ? "21%" : "0%",
+            scale: deskFx && settled ? 0.9 : 1,
           }}
           transition={{ duration: 1, ease: EASE, delay: skipIntro ? 0 : 0.15 }}
           className={
-            morphOn
+            deskFx
               ? "absolute inset-0 z-10 grid place-items-center"
-              : "relative z-10 grid flex-1 place-items-center px-6"
+              : "relative z-10 grid place-items-center px-6"
           }
         >
           <div className="grid place-items-center">
@@ -562,11 +592,13 @@ function HeroRunway({
                 index={i}
                 count={L}
                 total={total}
-                morphOn={morphOn}
+                peelOn={peelOn}
+                deskFx={deskFx}
                 show={show}
                 settled={settled}
                 skipIntro={skipIntro}
                 introScale={introScale}
+                deckReady={deckReady}
                 scrollYProgress={scrollYProgress}
                 activeIndex={activeIndex}
               />
@@ -574,19 +606,102 @@ function HeroRunway({
           </div>
         </motion.div>
 
-        {/* ---- centred copy (mobile / reduced-motion only) ---- */}
-        {!morphOn && (
+        {/* ---- mobile info panel (sits BELOW the pinned peel deck). Mirrors the
+             desktop side panel — title → tech → stats — and swaps its copy to the
+             active card as the deck peels. In peel mode it's compact so the deck +
+             info both fit one pinned screen; reduced-motion keeps the fuller,
+             scrolling layout (eyebrow + description) since there's no runway. ---- */}
+        {!deskFx && (
           <motion.div
             initial={skipIntro ? false : { opacity: 0, y: 18 }}
             animate={{ opacity: settled ? 1 : 0, y: settled ? 0 : 18 }}
             transition={{ duration: 0.8, ease: EASE }}
-            className="relative z-20 mx-auto mt-12 flex flex-col items-center gap-5 text-center"
+            className={
+              peelOn
+                ? "relative z-20 mx-auto mt-8 flex w-full max-w-sm flex-col items-center gap-4 px-6 text-center"
+                : "relative z-20 mx-auto mt-10 flex w-full max-w-md flex-col items-center gap-5 px-6 text-center"
+            }
           >
-            <SectionLabel>{EYEBROW}</SectionLabel>
-            <p className="max-w-md text-pretty text-[13.5px] leading-relaxed text-(--ed-ink-2) sm:text-sm">
-              {TAGLINE}
-            </p>
-            <DotButton href="/themes">Explore Themes</DotButton>
+            {!peelOn && <SectionLabel>{EYEBROW}</SectionLabel>}
+
+            {/* the copy crossfades between cards while peeling; keyed on the active
+                theme so each peel swaps title/tech/stats in step with the deck */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={active._id}
+                initial={peelOn ? { opacity: 0, y: 10 } : false}
+                animate={{ opacity: 1, y: 0 }}
+                exit={peelOn ? { opacity: 0, y: -10 } : undefined}
+                transition={{ duration: 0.4, ease: EASE }}
+                className="flex w-full flex-col items-center gap-4"
+              >
+                {/* active theme title */}
+                <h2 className="ed-display text-[clamp(1.7rem,7.5vw,2.75rem)] leading-[1.05] text-(--ed-ink)">
+                  {active.title}
+                </h2>
+
+                {/* tech badges */}
+                <div className="flex flex-wrap justify-center gap-2">
+                  {[...(active.technologies || []), "SEO Optimized"]
+                    .slice(0, 4)
+                    .map((tech) => (
+                      <span
+                        key={tech}
+                        className="inline-flex items-center rounded-md border border-(--ed-line) bg-(--ed-surface) px-2.5 py-1 text-[11px] font-medium text-(--ed-ink-2)"
+                      >
+                        {tech}
+                      </span>
+                    ))}
+                </div>
+
+                {/* description — only in the fuller reduced-motion layout */}
+                {!peelOn && (
+                  <p className="max-w-md text-pretty text-[14px] leading-relaxed text-(--ed-ink-2)">
+                    {active.shortDescription || active.description}
+                  </p>
+                )}
+
+                {/* stats — same three metrics as the desktop panel. CountUp only
+                    animates in reduced mode (it mounts once); while peeling the
+                    values swap per card, so plain numbers avoid a re-count flicker. */}
+                <div className="grid w-full grid-cols-3 gap-3 border-t border-(--ed-line-soft) pt-5">
+                  <div>
+                    <p className="text-xl font-bold tracking-tight text-(--ed-ink)">
+                      {peelOn ? "120+" : <CountUp value={120} suffix="+" />}
+                    </p>
+                    <p className="mt-0.5 text-[10px] uppercase tracking-wider text-(--ed-ink-2)">
+                      Themes Available
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xl font-bold tracking-tight text-(--ed-ink)">
+                      {peelOn ? (
+                        `${active.downloads || 45}K+`
+                      ) : (
+                        <CountUp value={active.downloads || 45} suffix="K+" />
+                      )}
+                    </p>
+                    <p className="mt-0.5 text-[10px] uppercase tracking-wider text-(--ed-ink-2)">
+                      Downloads
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xl font-bold tracking-tight text-(--ed-ink)">
+                      {peelOn ? (
+                        (active.rating || 4.9).toFixed(1)
+                      ) : (
+                        <CountUpDecimal value={active.rating || 4.9} />
+                      )}
+                    </p>
+                    <p className="mt-0.5 text-[10px] uppercase tracking-wider text-(--ed-ink-2)">
+                      Avg Rating
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+
+            <EdButton href="/themes">Explore Themes</EdButton>
           </motion.div>
         )}
       </div>
@@ -594,37 +709,28 @@ function HeroRunway({
   );
 }
 
-/* ---------- loader: progress bar + staggered curtain wipe ---------- */
+/* ---------- loader: dark overlay with progress counter ----------
+   Fades out smoothly when fullwidth phase starts, revealing the
+   full-width card behind it. No curtain panels here. */
 
 function HeroLoader({
   phase,
   pct,
 }: {
-  phase: "loading" | "exiting" | "done";
+  phase: "loading" | "fullwidth";
   pct: number;
 }) {
-  const exiting = phase === "exiting";
+  const fading = phase === "fullwidth";
   return (
-    <div className="fixed inset-0 z-100 flex overflow-hidden">
-      {/* curtain columns — lift upward in a staggered wave on exit */}
-      {Array.from({ length: 5 }).map((_, i) => (
-        <motion.div
-          key={i}
-          initial={{ y: "0%" }}
-          animate={{ y: exiting ? "-101%" : "0%" }}
-          transition={{
-            duration: 0.75,
-            ease: [0.76, 0, 0.24, 1],
-            delay: exiting ? i * 0.08 : 0,
-          }}
-          className="h-full flex-1 bg-(--ed-dark)"
-        />
-      ))}
-
-      {/* progress read-out, centred, fades out first */}
+    <motion.div
+      className="fixed inset-0 z-100 bg-(--ed-dark)"
+      animate={{ opacity: fading ? 0 : 1 }}
+      transition={{ duration: 0.8, ease: EASE }}
+    >
+      {/* progress read-out, fades out first */}
       <motion.div
-        animate={{ opacity: exiting ? 0 : 1, y: exiting ? -16 : 0 }}
-        transition={{ duration: 0.4, ease: EASE }}
+        animate={{ opacity: fading ? 0 : 1, y: fading ? -16 : 0 }}
+        transition={{ duration: 0.35, ease: EASE }}
         className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-6 text-(--ed-ink-on-dark)"
       >
         <p className="ed-label text-(--ed-ink-2-on-dark)">
@@ -640,9 +746,40 @@ function HeroLoader({
           />
         </div>
       </motion.div>
+    </motion.div>
+  );
+}
+/* ---------- curtain wipe: single continuous sweep of dark curtain columns
+   that passes over the full-width banner, vanishing it and revealing the
+   settled deck behind the panels as they exit below the screen ---------- */
+
+function CurtainWipe({ onMidpoint }: { onMidpoint: () => void }) {
+  // trigger deck swap right as the panels cover the full-width banner
+  useEffect(() => {
+    const id = setTimeout(onMidpoint, 500);
+    return () => clearTimeout(id);
+  }, [onMidpoint]);
+
+  return (
+    <div className="fixed inset-0 z-100 flex overflow-hidden pointer-events-none">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <motion.div
+          key={i}
+          initial={{ y: "-101%" }}
+          animate={{ y: "101%" }}
+          transition={{
+            duration: 1.25,
+            ease: [0.76, 0, 0.24, 1],
+            delay: i * 0.07,
+          }}
+          className="h-full flex-1 bg-(--ed-dark)"
+        />
+      ))}
     </div>
   );
 }
+
+
 
 /* ---------- one card in the deck ---------- */
 
@@ -651,11 +788,13 @@ function DeckCard({
   index,
   count,
   total,
-  morphOn,
+  peelOn,
+  deskFx,
   show,
   settled,
   skipIntro,
   introScale,
+  deckReady,
   scrollYProgress,
   activeIndex,
 }: {
@@ -663,11 +802,13 @@ function DeckCard({
   index: number;
   count: number;
   total: number;
-  morphOn: boolean;
+  peelOn: boolean;
+  deskFx: boolean;
   show: boolean;
   settled: boolean;
   skipIntro: boolean;
   introScale: number;
+  deckReady: boolean;
   scrollYProgress: MotionValue<number>;
   activeIndex: number;
 }) {
@@ -728,7 +869,7 @@ function DeckCard({
   let cardScale: MotionValue<number>;
   let cardOverlayOpacity: MotionValue<number> | number = 0;
 
-  if (morphOn) {
+  if (peelOn) {
     if (index === 0) {
       cardScale = scaleFront;
       cardOverlayOpacity = 0;
@@ -743,9 +884,6 @@ function DeckCard({
     cardScale = staticScale;
     cardOverlayOpacity = 0;
   }
-
-  // Peel shadow progress
-  const peelProgress = useTransform(scrollYProgress, [start, end], [0, 1]);
 
   // Mouse-based 3D tilt
   const mouseX = useMotionValue(0);
@@ -762,7 +900,7 @@ function DeckCard({
   const spotlightBg = useMotionTemplate`radial-gradient(circle 250px at ${spotlightX}px ${spotlightY}px, rgba(255, 255, 255, 0.12), transparent)`;
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!morphOn || index !== activeIndex) return;
+    if (!deskFx || index !== activeIndex) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const width = rect.width;
     const height = rect.height;
@@ -793,22 +931,48 @@ function DeckCard({
     };
   }, []);
 
+  /* Intro animation:
+     - Before deckReady: Card 0 is visible at full-width (introScale), Cards 1..4 hidden.
+     - When deckReady becomes true (mid curtain wipe): Card 0 snaps to deck size (scale 1)
+       and Cards 1..4 cascade into view as the curtain panels sweep off the screen. */
   const introVariants: Variants = {
     hidden: isFront
       ? { scale: introScale, opacity: 1, y: 0 }
-      : { scale: 1.12, opacity: 0, y: 34 },
-    shown: {
-      scale: 1,
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: "spring",
-        stiffness: isFront ? 160 : 200,
-        damping: isFront ? 24 : 20,
-        delay: skipIntro ? 0 : isFront ? 1.3 : 0.4 + index * 0.12,
-      },
-    },
+      : { scale: 0.92, opacity: 0, y: 30 },
+    shown: isFront
+      ? {
+          scale: 1,
+          opacity: 1,
+          y: 0,
+          transition: {
+            type: "spring",
+            stiffness: 140,
+            damping: 22,
+          },
+        }
+      : {
+          scale: 1,
+          opacity: 1,
+          y: 0,
+          transition: {
+            type: "spring",
+            stiffness: 160,
+            damping: 20,
+            delay: (index - 1) * 0.12,
+          },
+        },
   };
+
+  const introTarget = skipIntro
+    ? "shown"
+    : deckReady
+      ? "shown"
+      : "hidden";
+
+  // reduced-motion has no peel scroll — show only the front card (the info panel
+  // below carries the theme detail); rendering the full rotated 5-card stack with
+  // nothing to peel it just clips messily at the screen edges.
+  if (!peelOn && index !== 0) return null;
 
   return (
     <motion.div
@@ -816,14 +980,14 @@ function DeckCard({
         gridColumnStart: 1,
         gridRowStart: 1,
         zIndex: count - index,
-        ...(morphOn ? { y } : {}),
+        ...(peelOn ? { y } : {}),
       }}
       className="will-change-transform"
     >
       <motion.div
         variants={introVariants}
         initial={skipIntro ? "shown" : "hidden"}
-        animate={show ? "shown" : "hidden"}
+        animate={introTarget}
       >
         <motion.div
           style={{
@@ -832,7 +996,7 @@ function DeckCard({
           }}
           className="will-change-transform"
           animate={
-            morphOn && index === activeIndex
+            peelOn && index === activeIndex
               ? {
                   y: [0, -6, 6, 0],
                 }
@@ -849,22 +1013,24 @@ function DeckCard({
         >
           <motion.div
             style={
-              morphOn
+              peelOn
                 ? {
                     rotate: liftRot,
-                    rotateX: index === activeIndex ? rotateX : 0,
-                    rotateY: index === activeIndex ? rotateY : 0,
+                    // pointer-follow tilt is desktop-only; phones have no cursor
+                    rotateX: deskFx && index === activeIndex ? rotateX : 0,
+                    rotateY: deskFx && index === activeIndex ? rotateY : 0,
                   }
                 : { rotate: rot }
             }
           >
-            <div style={morphOn ? { rotate: `${rot}deg` } : undefined}>
+            <div style={peelOn ? { rotate: `${rot}deg` } : undefined}>
               <Link
                 href={`/themes/${theme.slug}`}
-                {...(morphOn ? cursor : {})}
+                {...(deskFx ? cursor : {})}
                 className={
-                  "block w-[clamp(320px,50vw,780px)] " +
-                  (morphOn ? "cursor-none" : "")
+                  deskFx
+                    ? "block w-[clamp(320px,50vw,780px)] cursor-none"
+                    : "block w-[min(85vw,420px)]"
                 }
               >
                 <motion.div
@@ -872,7 +1038,7 @@ function DeckCard({
                   onMouseLeave={handleMouseLeave}
                   data-hero-front={isFront ? "" : undefined}
                   style={
-                    morphOn
+                    peelOn
                       ? {
                           scale: cardScale,
                         }
@@ -896,15 +1062,15 @@ function DeckCard({
                   )}
 
                   {/* Dynamic darkness overlay (replacing expensive CPU-bound CSS filter animations) */}
-                  {morphOn && (
+                  {peelOn && (
                     <motion.div
                       style={{ opacity: cardOverlayOpacity }}
                       className="absolute inset-0 z-10 bg-black pointer-events-none will-change-opacity"
                     />
                   )}
 
-                  {/* Cursor lighting spotlight */}
-                  {morphOn && index === activeIndex && (
+                  {/* Cursor lighting spotlight — follows the pointer, so desktop only */}
+                  {deskFx && index === activeIndex && (
                     <motion.div
                       className="pointer-events-none absolute inset-0 z-10"
                       style={{
@@ -914,7 +1080,7 @@ function DeckCard({
                   )}
 
                   {/* Glass reflection sweep */}
-                  {morphOn && index === activeIndex && (
+                  {peelOn && index === activeIndex && (
                     <motion.div
                       className="pointer-events-none absolute inset-0 z-20 bg-linear-to-tr from-transparent via-white/10 to-transparent"
                       animate={isScrolling ? { x: "-100%" } : { x: ["-100%", "200%"] }}
@@ -931,7 +1097,7 @@ function DeckCard({
                   )}
 
                   {/* View Details Button Overlay (Upper Right Corner) */}
-                  {morphOn && index === activeIndex && (
+                  {peelOn && index === activeIndex && (
                     <motion.div
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: settled ? 1 : 0, scale: settled ? 1 : 0.8 }}
@@ -970,62 +1136,6 @@ function DeckCard({
         </motion.div>
       </motion.div>
     </motion.div>
-  );
-}
-
-/* ---------- CTA pill with an accent dot (Ovo-style “● Learn More”) ---------- */
-
-function DotButton({
-  href,
-  children,
-  colors,
-}: {
-  href: string;
-  children: string;
-  colors?: { primary: string; secondary: string };
-}) {
-  return (
-    <Magnetic className="inline-block" strength={12}>
-      <Link
-        href={href}
-        className="group relative inline-flex h-12 items-center gap-2.5 rounded-full bg-(--ed-ink) pl-5 pr-6 text-[13px] font-medium uppercase tracking-[0.14em] text-(--ed-bg) transition-all duration-300 hover:bg-black dark:hover:bg-white overflow-hidden"
-      >
-        {/* Hover glow */}
-        <div
-          className="absolute inset-0 -z-10 opacity-0 transition-opacity duration-300 group-hover:opacity-100 blur-sm"
-          style={{
-            backgroundImage: colors
-              ? `linear-gradient(to right, ${colors.primary}33, ${colors.secondary}33)`
-              : "linear-gradient(to right, var(--brand) 30%, var(--secondary) 100%)",
-          }}
-        />
-        
-        {/* Animated Gradient border */}
-        <div
-          className="absolute inset-0 rounded-full border transition-colors duration-300"
-          style={{
-            borderColor: "rgba(255, 255, 255, 0.1)",
-          }}
-        />
-
-        <span
-          className="size-2 rounded-full transition-transform duration-300 group-hover:scale-125"
-          style={{
-            backgroundColor: colors ? colors.primary : "var(--brand)",
-          }}
-        />
-        
-        <TextRoll>{children}</TextRoll>
-
-        {/* Animated Arrow */}
-        <ArrowRight
-          className="size-4 ml-1 transition-transform duration-300 -translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-100"
-          style={{
-            color: colors ? colors.primary : "var(--brand)",
-          }}
-        />
-      </Link>
-    </Magnetic>
   );
 }
 

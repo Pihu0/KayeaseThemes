@@ -87,10 +87,21 @@ const getThemeById = async (req, res) => {
 };
 
 // @desc   Get a single theme by slug (for SEO-friendly URLs)
-// @route  GET /api/themes/slug/:slug
+// @route  GET /api/themes/slug/:slug?track=1
+// Pass ?track=1 to count this as a page view (+1 to `views`). The detail page
+// sends it only on the actual render, NOT from generateMetadata — otherwise the
+// two server-side fetches per visit would double-count every view.
 const getThemeBySlug = async (req, res) => {
   try {
-    const theme = await Theme.findOne({ slug: req.params.slug });
+    const track = req.query.track === "1";
+    const theme = track
+      ? await Theme.findOneAndUpdate(
+          { slug: req.params.slug },
+          { $inc: { views: 1 } },
+          { new: true }
+        )
+      : await Theme.findOne({ slug: req.params.slug });
+
     if (!theme) {
       return res.status(404).json({ message: "Theme not found" });
     }

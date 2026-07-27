@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion, useScroll, useMotionValueEvent } from "motion/react";
+import { motion } from "motion/react";
 import { Menu, X, ArrowUpRight } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -152,10 +152,10 @@ export default function Navbar() {
 
           {/* Primary Action Button */}
           <Link
-            href="/contact"
+            href="/customdesign"
             target="_self"
             className={cn(
-              "group items-center gap-1.5 rounded-full px-5 py-2 text-xs font-bold uppercase tracking-wider shadow-sm transition-all duration-300 inline-flex",
+              "group items-center gap-1.5 rounded-full px-5 py-2 text-xs font-bold uppercase tracking-wider shadow-sm transition-all duration-300 hidden md:inline-flex",
               "bg-(--primary) text-white hover:bg-(--primary)/90 hover:shadow-md active:scale-95"
             )}
           >
@@ -183,7 +183,7 @@ export default function Navbar() {
       {menuOpen && (
         <div className="mx-auto mt-2 w-full max-w-4xl rounded-3xl border border-border/60 bg-background/90 shadow-lg backdrop-blur-xl md:hidden pointer-events-auto">
           <div className="flex flex-col gap-1 px-5 py-4">
-            {[...navLinks, { href: "/contact", label: "Custom Design" }, { href: "/login", label: "Login" }].map((l) => (
+            {[...navLinks, { href: "/customdesign", label: "Custom Design" }, { href: "/login", label: "Login" }].map((l) => (
               <Link
                 key={l.href}
                 href={l.href}

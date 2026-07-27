@@ -32,25 +32,136 @@ const META_H = 84;
 const ARC_HALF = 180; // ≈ half the arc's visual height, to seat it under the CTA
 
 /* ---------- mobile / reduced-motion fallback ---------- */
-export function StripHero({ themes }: { themes: Theme[] }) {
-  const cards = themes.filter((t) => t.image).slice(0, 12);
-  if (cards.length === 0) return null;
+function StripCard({ theme }: { theme: Theme }) {
+  const free = theme.pricingType === "free" || theme.price === 0;
   return (
-    <div className="relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-linear-to-r from-(--ed-bg) to-transparent" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-linear-to-l from-(--ed-bg) to-transparent" />
-      <div className="flex snap-x gap-4 overflow-x-auto px-[clamp(1.5rem,4vw,4.5rem)] pb-2 scrollbar-none">
-        {cards.map((t) => (
-          <Link key={t._id} href={`/themes/${t.slug}`} className="group w-57.5 shrink-0 snap-start">
-            <div className="relative aspect-4/5 overflow-hidden rounded-xl border border-(--ed-line) bg-(--ed-surface)">
-              <Image src={t.image} alt={t.title} fill sizes="230px" className="object-cover object-top" />
-            </div>
-            <div className="mt-3 flex items-baseline justify-between gap-3">
-              <span className="truncate text-[13px] font-medium text-(--ed-ink)">{t.title}</span>
-            </div>
-          </Link>
-        ))}
+    <Link
+      href={`/themes/${theme.slug}`}
+      data-strip-card
+      className="group w-[clamp(9.5rem,42vw,13rem)] shrink-0 backface-hidden transform-3d will-change-transform"
+    >
+      <div className="relative aspect-4/5 overflow-hidden rounded-xl border border-(--ed-line) bg-(--ed-surface)">
+        <Image
+          src={theme.image}
+          alt={theme.title}
+          fill
+          sizes="(max-width: 640px) 42vw, 208px"
+          className="object-cover object-top"
+        />
       </div>
+      <div className="mt-3 flex items-baseline justify-between gap-3">
+        <span className="truncate text-[13px] font-medium text-(--ed-ink)">{theme.title}</span>
+        <span className="shrink-0 text-[12px] tabular-nums text-(--ed-ink-2)">
+          {free ? "Free" : `$${theme.price}`}
+        </span>
+      </div>
+    </Link>
+  );
+}
+
+export function StripHero({ themes }: { themes: Theme[] }) {
+  const reduced = useReducedMotion();
+  const cards = useMemo(() => themes.filter((t) => t.image).slice(0, 12), [themes]);
+
+  // continuous left-drift marquee — the mobile echo of the desktop arc's flow.
+  // A ref-driven rAF loop nudges the track and wraps once the first copy has
+  // fully scrolled past (cards are rendered twice, so the second copy takes over
+  // with no visible seam). We wrap at the second copy's exact offset — measuring
+  // that instead of halving scrollWidth keeps the loop pixel-seamless despite
+  // the flex gaps. Touch pauses it so covers stay readable/tappable;
+  // reduced-motion users get a static swipe strip instead.
+  const x = useMotionValue(0);
+  const wrapRef = useRef<HTMLDivElement>(null); // strip viewport, for measuring card positions
+  const copyRef = useRef<HTMLDivElement>(null); // the 2nd copy; its offsetLeft == one loop
+  const pausedRef = useRef(false);
+  const SPEED = 32; // px per second
+
+  // 3D arc tuning — coverflow, like the reference: the card(s) in the centre
+  // stay FLAT and upright (the focal point), and only cards past a dead-zone
+  // start rotating inward, ramping up hard toward the edges. Size is kept
+  // uniform (no translateZ) so the row never reads as mixed sizes — the depth
+  // comes from the edge cards angling away while the middle faces you.
+  const MAX_ROT = 52; // deg at the very edges
+  const DEAD = 0.4; // |t| below this stays flat (the upright middle band)
+  const REACH = 0.45; // fraction of strip width to reach full tilt
+
+  useAnimationFrame((_, delta) => {
+    if (reduced || !copyRef.current || !wrapRef.current) return;
+    // advance the marquee (unless paused by touch/hover)
+    if (!pausedRef.current) {
+      const advance = copyRef.current.offsetLeft;
+      if (advance) {
+        let next = x.get() - (delta / 1000) * SPEED;
+        if (next <= -advance) next += advance;
+        x.set(next);
+      }
+    }
+    // per-card 3D pass: flat middle, tilt ramps in past the dead-zone
+    const wrap = wrapRef.current.getBoundingClientRect();
+    const mid = wrap.left + wrap.width / 2;
+    const reach = wrap.width * REACH;
+    const els = wrapRef.current.querySelectorAll<HTMLElement>("[data-strip-card]");
+    els.forEach((el) => {
+      const r = el.getBoundingClientRect();
+      const c = r.left + r.width / 2;
+      const t = Math.max(-1.6, Math.min(1.6, (c - mid) / reach));
+      const s = Math.sign(t);
+      const a = Math.abs(t);
+      // 0 inside the dead-zone, then eased 0→1 out to the edge
+      const raw = a <= DEAD ? 0 : Math.min(1, (a - DEAD) / (1.4 - DEAD));
+      const ramp = raw * raw * (3 - 2 * raw); // smoothstep
+      el.style.transform = `rotateY(${-s * ramp * MAX_ROT}deg)`;
+    });
+  });
+
+  if (cards.length === 0) return null;
+
+  // reduced motion: keep the swipeable snap strip (no auto-movement)
+  if (reduced) {
+    return (
+      <div className="relative overflow-hidden">
+        <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-linear-to-r from-(--ed-bg) to-transparent sm:w-12" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-linear-to-l from-(--ed-bg) to-transparent sm:w-12" />
+        <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-[clamp(1.25rem,10vw,4.5rem)] pb-2 scroll-px-[clamp(1.25rem,10vw,4.5rem)] scrollbar-none sm:gap-4">
+          {cards.map((t) => (
+            <div key={t._id} className="snap-center">
+              <StripCard theme={t} />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      ref={wrapRef}
+      className="relative overflow-hidden perspective-[1100px] perspective-origin-center"
+    >
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-linear-to-r from-(--ed-bg) to-transparent sm:w-12" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-linear-to-l from-(--ed-bg) to-transparent sm:w-12" />
+      <motion.div
+        style={{ x }}
+        className="flex w-max gap-3 pb-2 transform-3d sm:gap-4"
+        onPointerDown={() => (pausedRef.current = true)}
+        onPointerUp={() => (pausedRef.current = false)}
+        onPointerCancel={() => (pausedRef.current = false)}
+        onMouseEnter={() => (pausedRef.current = true)}
+        onMouseLeave={() => (pausedRef.current = false)}
+      >
+        {/* first copy */}
+        <div className="flex shrink-0 gap-3 transform-3d sm:gap-4">
+          {cards.map((t) => (
+            <StripCard key={t._id} theme={t} />
+          ))}
+        </div>
+        {/* identical second copy — its offset marks the seamless wrap point */}
+        <div ref={copyRef} className="flex shrink-0 gap-3 transform-3d sm:gap-4">
+          {cards.map((t) => (
+            <StripCard key={`dup-${t._id}`} theme={t} />
+          ))}
+        </div>
+      </motion.div>
     </div>
   );
 }
@@ -90,10 +201,10 @@ export default function HeroMorph({
   useEffect(() => {
     if (!use3D || n === 0) return;
     let flow: ReturnType<typeof animate> | undefined;
-    const rc = animate(reveal, 1, { duration: 0.55, delay: 0.7, ease: EASE });
+    const rc = animate(reveal, 1, { duration: 0.4, delay: 0.25, ease: EASE });
     const ic = animate(intro, 1, {
-      duration: 1.1,
-      delay: 2.6,
+      duration: 0.7,
+      delay: 0.5,
       ease: EASE,
       onComplete: () => {
         flow = animate(phase, n * STEP_DEG, {
@@ -126,10 +237,12 @@ export default function HeroMorph({
   const [cols, setCols] = useState(3);
   const [vp, setVp] = useState({ w: 1440, h: 900 });
   const landedRef = useRef(false);
-  // the morph is fully scroll-reversible: p is driven purely by the grid's live
-  // position every frame, so scrolling up flies the covers back to the arc and
-  // scrolling down re-morphs them into the cells — the hero never just "vanishes",
-  // it always transforms into (or back out of) the grid.
+  // the morph is a ONE-WAY commit: the first time the covers fully land, we latch
+  // it forever — the gallery keeps its cards and the covers never fly back on an
+  // up-scroll. Afterwards the overlay becomes a resting hero arc that simply lives
+  // in the hero zone (fading out toward the grid), so the hero is never empty.
+  const committedRef = useRef(false);
+  const overlayOp = useMotionValue(1); // whole-overlay opacity (scroll fade when resting)
 
   useEffect(() => {
     const on = () => setVp({ w: window.innerWidth, h: window.innerHeight });
@@ -144,6 +257,24 @@ export default function HeroMorph({
     const anchor = document.querySelector("[data-hero-anchor]");
     const ab = anchor ? (anchor as HTMLElement).getBoundingClientRect().bottom : 0;
     anchorBottom.set(ab);
+
+    // ---- RESTING HERO ARC (post-commit) ----
+    // the covers now just live in the hero: pinned to the arc (p = 0), still
+    // flowing, and faded by scroll so they dissolve into the top as the hero
+    // scrolls away. They NEVER scrub back into the grid — the grid keeps its cards.
+    if (committedRef.current) {
+      p.set(0);
+      const arcCenterY = ab !== 0 ? ab + 24 + ARC_HALF : vp.h * 0.72;
+      const topEdge = vp.h * 0.12;
+      const fullAt = vp.h * 0.5;
+      const f0 = Math.max(0, Math.min(1, (arcCenterY - topEdge) / (fullAt - topEdge)));
+      const f = f0 * f0 * (3 - 2 * f0); // smoothstep the scroll fade
+      overlayOp.set(f);
+      // pause the flow while the arc is out of view (optimization) or hovered
+      if (hoveredRef.current || f < 0.02) flowRef.current?.pause();
+      else flowRef.current?.play();
+      return;
+    }
 
     // hold the arc until the entrance is done — scroll can't morph it early
     if (!readyRef.current) {
@@ -186,6 +317,9 @@ export default function HeroMorph({
       landedRef.current = landed;
       onLanded(landed);
     }
+    // fully home → commit for good: from here the overlay is a resting hero arc
+    // and the grid owns its cards permanently (an up-scroll can't steal them back).
+    if (pv >= 0.999) committedRef.current = true;
   });
 
   if (!use3D || n === 0 || !active) return null;
@@ -193,7 +327,7 @@ export default function HeroMorph({
   return (
     <motion.div
       className="pointer-events-none fixed inset-0 z-40"
-      style={{ perspective: `${PERSPECTIVE}px` }}
+      style={{ perspective: `${PERSPECTIVE}px`, opacity: overlayOp }}
     >
       {/* preserve-3d so the perspective reaches each cover's translateZ (depth) */}
       <div className="relative h-full w-full" style={{ transformStyle: "preserve-3d" }}>
@@ -218,6 +352,7 @@ export default function HeroMorph({
             rowStepY={rowStepY}
             cellH={cellH}
             anchorBottom={anchorBottom}
+            overlayOp={overlayOp}
             onHover={(v) => {
               hoveredRef.current = v;
             }}
@@ -247,6 +382,7 @@ function MorphCard({
   rowStepY,
   cellH,
   anchorBottom,
+  overlayOp,
   onHover,
 }: {
   theme: Theme;
@@ -267,6 +403,7 @@ function MorphCard({
   rowStepY: MotionValue<number>;
   cellH: MotionValue<number>;
   anchorBottom: MotionValue<number>;
+  overlayOp: MotionValue<number>;
   onHover: (hovered: boolean) => void;
 }) {
   const totalArc = total * STEP_DEG;
@@ -278,9 +415,8 @@ function MorphCard({
   const col = index % cols;
   const row = Math.floor(index / cols);
   const portraitW = Math.max(180, Math.min(0.135 * vpW, 225)); // original cover size
-  // once a cover has landed on its cell it fades to 0 — stop it capturing clicks
-  // so the real gallery card underneath receives hover/clicks
-  const pe = useTransform(p, (v) => (v > 0.9 ? "none" : "auto"));
+  // don't let the faded resting arc capture clicks over the content below it
+  const pe = useTransform(overlayOp, (v) => (v > 0.9 ? "auto" : "none"));
 
   const angle = useTransform([intro, phase], ([iv, pv]: number[]) =>
     iv < 1 ? restAngle * iv : wrap(index * STEP_DEG - pv)

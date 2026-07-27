@@ -3,8 +3,7 @@
 import { motion } from "motion/react";
 import { ArrowDown } from "lucide-react";
 import MaskedLines from "@/components/motion/MaskedLines";
-import Magnetic from "@/components/motion/Magnetic";
-import TextRoll from "@/components/motion/TextRoll";
+import { EdButton } from "@/components/home/editorial";
 import { StripHero } from "@/components/archive/HeroCards";
 import { EASE, useIsDesktop } from "@/lib/motion";
 import { cn } from "@/lib/utils";
@@ -70,19 +69,12 @@ export default function ArchiveHeader({
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.7, ease: EASE }}
+          data-hero-anchor
           className="mt-8"
         >
-          <Magnetic className="inline-block">
-            <button
-              type="button"
-              data-hero-anchor
-              onClick={onExplore}
-              className="group inline-flex h-12 items-center gap-2.5 rounded-full bg-(--ed-ink) px-7 text-[13px] font-medium uppercase tracking-[0.14em] text-(--ed-bg) transition-colors duration-300 hover:bg-black dark:hover:bg-white"
-            >
-              <TextRoll>Explore the collection</TextRoll>
-              <ArrowDown className="size-4 transition-transform duration-300 ease-out group-hover:translate-y-0.5" />
-            </button>
-          </Magnetic>
+          <EdButton onClick={onExplore} icon={<ArrowDown className="size-4" />}>
+            Explore the collection
+          </EdButton>
         </motion.div>
       </div>
 

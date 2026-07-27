@@ -142,13 +142,16 @@ export default function AdminCategoriesPage() {
             className="pl-9 pr-9"
           />
           {query && (
-            <button
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              sweep
               onClick={() => setQuery("")}
               aria-label="Clear search"
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-muted-foreground hover:text-foreground"
+              className="absolute right-2 top-1/2 -translate-y-1/2"
             >
               <X className="h-4 w-4" />
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -209,6 +212,7 @@ export default function AdminCategoriesPage() {
                           <Button
                             variant="ghost"
                             size="icon-sm"
+                            sweep
                             aria-label="Row actions"
                           >
                             <MoreHorizontal className="h-4 w-4" />

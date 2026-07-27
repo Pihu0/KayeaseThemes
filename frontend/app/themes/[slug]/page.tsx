@@ -17,9 +17,11 @@ import { Button } from "@/components/ui/button";
 import ScreenshotGallery from "@/components/ScreenshotGallery";
 import type { Theme } from "@/lib/types";
 
-async function getTheme(slug: string): Promise<Theme | null> {
+// track=true increments the theme's view count. Only the page render passes it;
+// generateMetadata does NOT, so a single visit counts as one view (not two).
+async function getTheme(slug: string, track = false): Promise<Theme | null> {
   try {
-    return await apiFetch(`/themes/slug/${slug}`);
+    return await apiFetch(`/themes/slug/${slug}${track ? "?track=1" : ""}`);
   } catch {
     return null;
   }
@@ -34,15 +36,23 @@ export async function generateMetadata({
   const theme = await getTheme(slug);
   if (!theme) return { title: "Theme not found" };
 
+  // Guarantee a non-empty description: imported themes sometimes ship with all
+  // three text fields blank, which previously left the page with no meta
+  // description at all. The final clause is a hard fallback that can never be empty.
+  const description =
+    theme.metaDescription ||
+    theme.shortDescription ||
+    theme.description ||
+    `${theme.title} — a premium ${theme.category || ""} theme, available to download on Kayease Themes.`;
+
   return {
     title: theme.metaTitle || theme.title,
-    description:
-      theme.metaDescription || theme.shortDescription || theme.description,
+    description,
     keywords: theme.keywords?.length ? theme.keywords : undefined,
     alternates: { canonical: `/themes/${theme.slug}` },
     openGraph: {
       title: theme.metaTitle || theme.title,
-      description: theme.metaDescription || theme.shortDescription,
+      description,
       images: theme.image ? [{ url: theme.image }] : [],
       type: "website",
     },
@@ -55,7 +65,7 @@ export default async function ThemeDetailsPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const theme = await getTheme(slug);
+  const theme = await getTheme(slug, true); // count this render as a view
   if (!theme) notFound();
 
   const isFree = theme.pricingType === "free" || theme.price === 0;
@@ -215,7 +225,7 @@ export default async function ThemeDetailsPage({
                 </Button>
               ) : (
                 <Button
-                  render={<Link href="/contact" />}
+                  render={<Link href="/customdesign" />}
                   nativeButton={false}
                   className="w-full"
                 >

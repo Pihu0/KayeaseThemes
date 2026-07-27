@@ -23,7 +23,7 @@ export default function CustomCTA() {
           </p>
           <div className="mt-8">
             <Button
-              render={<Link href="/contact" />}
+              render={<Link href="/customdesign" />}
               nativeButton={false}
               size="lg"
               data-icon="inline-end"

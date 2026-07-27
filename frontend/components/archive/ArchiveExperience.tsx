@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import Lenis from "lenis";
 import { MotionConfig, useReducedMotion } from "motion/react";
+import { useIsDesktop } from "@/lib/motion";
 import { CursorProvider } from "@/components/home/cursor";
 import ArchiveHeader from "@/components/archive/ArchiveHeader";
 import HeroMorph from "@/components/archive/HeroCards";
@@ -12,7 +13,6 @@ import ThemeGallery from "@/components/archive/ThemeGallery";
 import IndexView from "@/components/archive/IndexView";
 import FilterDrawer from "@/components/archive/FilterDrawer";
 import QuickView from "@/components/archive/QuickView";
-import ArchiveEnd from "@/components/archive/ArchiveEnd";
 import type { Theme, Category } from "@/lib/types";
 
 /* THE THEME ARCHIVE — /themes
@@ -80,6 +80,7 @@ export default function ArchiveExperience({
   total: number;
 }) {
   const reduced = useReducedMotion();
+  const desktop = useIsDesktop();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -218,10 +219,15 @@ export default function ArchiveExperience({
   const activeFilterCount =
     (filters.category ? 1 : 0) + (filters.framework ? 1 : 0) + (filters.pricing ? 1 : 0);
 
-  /* ---- hero → grid morph: only on the pristine, unfiltered grid ---- */
+  /* ---- hero → grid morph: only on the pristine, unfiltered grid, and ONLY on
+     desktop where the HeroMorph overlay actually runs. On mobile/tablet the
+     overlay renders nothing, so gating here is essential — otherwise morphN>0
+     would hide the first cards while nothing ever flies in to reveal them. ---- */
   const galleryGridRef = useRef<HTMLUListElement>(null);
   const [landed, setLanded] = useState(false);
   const morphActive =
+    desktop &&
+    !reduced &&
     view === "grid" &&
     activeFilterCount === 0 &&
     filters.search.trim() === "" &&
@@ -295,16 +301,6 @@ export default function ArchiveExperience({
               />
             )}
           </div>
-
-          <ArchiveEnd
-            categories={categoryFacets}
-            frameworks={frameworkFacets}
-            themes={themes}
-            onFind={(category, framework) => {
-              setFilters({ search: "", pricing: "", category, framework });
-              scrollToGallery();
-            }}
-          />
 
           <FilterDrawer
             open={drawerOpen}

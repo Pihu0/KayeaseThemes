@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      // Keep private/admin routes out of search results
+      // Keep private/admin & auth routes out of search results
       disallow: ["/admin", "/login"],
     },
     sitemap: `${siteUrl}/sitemap.xml`,

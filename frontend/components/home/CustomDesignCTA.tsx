@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { EdButton } from "@/components/home/editorial";
 import { motion } from "motion/react";
 import { ArrowRight, Sparkles, Paintbrush, Code, Layout } from "lucide-react";
 import { EASE } from "@/lib/motion";
@@ -8,8 +8,8 @@ import { EASE } from "@/lib/motion";
 export default function CustomDesignCTA() {
   return (
     <section 
-      aria-label="Custom Design" 
-      className="relative overflow-hidden bg-slate-950 text-slate-100 py-24 sm:py-32 border-t border-slate-900"
+      aria-label="Custom Design"
+      className="relative overflow-hidden bg-[#0F172A] text-[#F8FAFC] py-24 sm:py-32 border-t border-white/10"
     >
       {/* ── background blueprint pattern & glow ── */}
       <div 
@@ -33,26 +33,20 @@ export default function CustomDesignCTA() {
 
             <h2 
               className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-tight"
-              style={{ fontFamily: "var(--font-heading)" }}
+              style={{ fontFamily: "var(--font-display)" }}
             >
               Want a Custom <br className="hidden sm:inline" />
-              <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-cyan-400 bg-clip-text text-transparent">
-                Design & Setup?
-              </span>
+              Design & Setup?
             </h2>
 
             <p className="text-base sm:text-lg text-slate-400 max-w-xl leading-relaxed">
-              If our premium themes don't match your unique goals, our custom agency team is ready to build a bespoke, lightning-fast digital experience designed specifically for your brand.
+              If our premium themes don&apos;t match your unique goals, our custom agency team is ready to build a bespoke, lightning-fast digital experience designed specifically for your brand.
             </p>
 
             <div className="flex flex-wrap gap-4 pt-4">
-              <Link 
-                href="/contact" 
-                className="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-xl bg-blue-600 px-6 py-3.5 text-sm font-semibold text-white shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98]"
-              >
+              <EdButton href="/customdesign" icon={<ArrowRight className="size-4" />}>
                 Request a Custom Design
-                <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
-              </Link>
+              </EdButton>
             </div>
           </div>
 

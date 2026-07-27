@@ -7,7 +7,6 @@ import {
   LayoutDashboard,
   Palette,
   FolderTree,
-  Plus,
   ExternalLink,
   LogOut,
   Menu,
@@ -166,6 +165,7 @@ function SidebarBody({
                   <Button
                     variant="ghost"
                     size="icon-sm"
+                    sweep
                     onClick={onLogout}
                     aria-label="Log out"
                   >
@@ -195,6 +195,7 @@ function SidebarBody({
                   <Button
                     variant="ghost"
                     size="icon-sm"
+                    sweep
                     onClick={onLogout}
                     aria-label="Log out"
                   >
@@ -268,13 +269,16 @@ export default function AdminShell({
             aria-hidden
           />
           <aside className="fixed inset-y-0 left-0 z-50 w-[260px] border-r border-border bg-sidebar">
-            <button
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              sweep
               onClick={() => setMobileOpen(false)}
               aria-label="Close navigation"
-              className="absolute right-3 top-4 rounded-md p-1.5 text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground"
+              className="absolute right-3 top-4"
             >
               <X className="h-4 w-4" />
-            </button>
+            </Button>
             <SidebarBody
               collapsed={false}
               user={user}
@@ -295,26 +299,32 @@ export default function AdminShell({
         {/* Topbar */}
         <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur sm:px-6">
           {/* Mobile hamburger */}
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
+            sweep
             onClick={() => setMobileOpen(true)}
             aria-label="Open navigation"
-            className="rounded-md p-2 text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground lg:hidden"
+            className="lg:hidden"
           >
             <Menu className="h-5 w-5" />
-          </button>
+          </Button>
 
           {/* Desktop collapse toggle */}
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
+            sweep
             onClick={toggleCollapsed}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className="hidden rounded-md p-2 text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground lg:inline-flex"
+            className="hidden lg:inline-flex"
           >
             {collapsed ? (
               <PanelLeft className="h-[18px] w-[18px]" />
             ) : (
               <PanelLeftClose className="h-[18px] w-[18px]" />
             )}
-          </button>
+          </Button>
 
           <h1 className="text-sm font-semibold tracking-tight">
             {pageTitle(pathname)}

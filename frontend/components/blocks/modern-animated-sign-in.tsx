@@ -421,7 +421,6 @@ const AnimatedForm = memo(function AnimatedForm({
             <button
               className='g-button group/btn bg-transparent w-full rounded-md border h-10 font-medium outline-hidden hover:cursor-pointer'
               type='button'
-              onClick={() => console.log('Google login clicked')}
             >
               <span className='flex items-center justify-center w-full h-full gap-3'>
                 <Image
@@ -523,10 +522,10 @@ const AnimatedForm = memo(function AnimatedForm({
           overflow='visible'
         >
           <button
-            className='relative group/btn overflow-hidden bg-gradient-to-br from-zinc-200 dark:from-zinc-900 dark:to-zinc-900 to-zinc-200 block dark:bg-zinc-800 w-full text-black dark:text-white rounded-xl h-11 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset] outline-hidden hover:cursor-pointer hover:border-purple-600'
+            className='relative group/btn overflow-hidden bg-gradient-to-br from-zinc-200 dark:from-zinc-900 dark:to-zinc-900 to-zinc-200 block dark:bg-zinc-800 w-full text-black dark:text-white rounded-xl h-11 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset] outline-hidden hover:cursor-pointer hover:border-primary'
             type='submit'
           >
-            <span className="w-56 h-56 rounded rotate-[-40deg] bg-purple-600 absolute bottom-0 left-0 -translate-x-full ease-out duration-500 transition-all translate-y-full mb-9 ml-9 group-hover/btn:ml-0 group-hover/btn:mb-32 group-hover/btn:translate-x-0 pointer-events-none" />
+            <span aria-hidden className="pointer-events-none absolute -inset-y-6 left-[-25%] w-[150%] -translate-x-[160%] skew-x-[-16deg] bg-blue-700 transition-transform duration-500 ease-out group-hover/btn:translate-x-0" />
             <span className="relative z-10 flex items-center justify-center gap-1 text-black dark:text-white transition-colors duration-300 ease-in-out group-hover/btn:text-white">
               {submitButton} &rarr;
             </span>

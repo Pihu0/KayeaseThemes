@@ -11,7 +11,7 @@ import {
   useTransform,
   AnimatePresence,
 } from "motion/react";
-import { EASE, EASE_SOFT, DUR, useIsDesktop } from "@/lib/motion";
+import { EASE, EASE_SOFT, useIsDesktop } from "@/lib/motion";
 import MaskedLines from "@/components/motion/MaskedLines";
 import { SectionLabel } from "@/components/home/editorial";
 import type { Theme } from "@/lib/types";
@@ -119,7 +119,7 @@ function SectionIntro() {
 
 // ── chapter 01 — responsive ────────────────────────────────────────
 
-function ChapterResponsive({ theme, allThemes = [] }: { theme: Theme; allThemes?: Theme[] }) {
+function ChapterResponsive({ allThemes = [] }: { theme: Theme; allThemes?: Theme[] }) {
   const desktop = useIsDesktop();
   const reduced = useReducedMotion();
   const morphEnabled = desktop && !reduced;

@@ -10,6 +10,7 @@ import ArchiveCard from "@/components/archive/ArchiveCard";
 import MaskedLines from "@/components/motion/MaskedLines";
 import { EASE_SOFT } from "@/lib/motion";
 import { isFree } from "@/components/archive/ArchiveExperience";
+import { EdButton } from "@/components/home/editorial";
 import type { ArchiveFilters } from "@/components/archive/ArchiveExperience";
 import type { Theme } from "@/lib/types";
 
@@ -141,13 +142,12 @@ export default function ThemeGallery({
                   style={{ width: `${(shown.length / themes.length) * 100}%` }}
                 />
               </div>
-              <button
-                type="button"
+              <EdButton
                 onClick={() => setVisible((v) => v + LOAD_STEP)}
-                className="group mt-1 inline-flex h-12 items-center gap-2.5 border border-(--ed-line) px-7 text-[13px] font-medium uppercase tracking-[0.14em] text-(--ed-ink) transition-colors duration-300 hover:bg-(--ed-ink) hover:text-(--ed-bg)"
+                className="mt-1"
               >
                 Load more themes
-              </button>
+              </EdButton>
             </div>
           )}
         </>

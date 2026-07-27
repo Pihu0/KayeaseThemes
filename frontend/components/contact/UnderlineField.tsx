@@ -3,11 +3,11 @@
 import { useId, useState } from "react";
 import { cn } from "@/lib/utils";
 
-/* UNDERLINE FIELD — the whole form is built from lines, not boxes (brief §16).
-   A label that lifts and tightens on focus, a baseline that fills left→right
-   on focus (scaleX via a pseudo-underline), and an inline error that turns the
-   line red without shaking anything. Real <input>/<textarea> underneath so
-   autofill, autocomplete and keyboard behaviour stay native (§53–54). */
+/* FORM FIELD — boxed inputs so the custom-design brief reads as a proper form:
+   a static uppercase label above a bordered field that lifts its border and
+   picks up a soft focus ring on focus, and turns red inline on error. Real
+   <input>/<textarea> underneath so autofill, autocomplete and keyboard
+   behaviour stay native. */
 
 type BaseProps = {
   label: string;
@@ -25,55 +25,44 @@ function Frame({
   label,
   htmlFor,
   focused,
-  filled,
   error,
+  required,
   children,
   className,
 }: {
   label: string;
   htmlFor: string;
   focused: boolean;
-  filled: boolean;
   error?: string | null;
+  required?: boolean;
   children: React.ReactNode;
   className?: string;
 }) {
-  const lifted = focused || filled;
   return (
-    <div className={cn("group relative", className)}>
+    <div className={cn("group", className)}>
       <label
         htmlFor={htmlFor}
         className={cn(
-          "block text-[11px] font-medium uppercase transition-all duration-300 ease-out",
-          lifted ? "tracking-[0.2em]" : "tracking-[0.14em]",
-          error
-            ? "text-[#b4231f]"
-            : focused
-              ? "text-(--ed-ink)"
-              : "text-(--ed-ink-2)"
+          "mb-2 block text-[11px] font-medium uppercase tracking-[0.16em] transition-colors duration-200",
+          error ? "text-[#b4231f]" : focused ? "text-(--ed-ink)" : "text-(--ed-ink-2)"
         )}
       >
         {label}
+        {required && <span className="ml-1 text-[#b4231f]">*</span>}
       </label>
 
-      {children}
-
-      {/* baseline: idle line + focus line that draws in from the left */}
-      <span
-        aria-hidden
+      <div
         className={cn(
-          "pointer-events-none absolute inset-x-0 bottom-0 h-px",
-          error ? "bg-[#b4231f]/50" : "bg-(--ed-ink)/18"
+          "rounded-lg border bg-(--ed-surface)/40 transition-all duration-200",
+          error
+            ? "border-[#b4231f]/70"
+            : focused
+              ? "border-(--ed-ink)/45 ring-2 ring-(--ed-ink)/10"
+              : "border-(--ed-line) hover:border-(--ed-ink)/25"
         )}
-      />
-      <span
-        aria-hidden
-        className={cn(
-          "pointer-events-none absolute inset-x-0 bottom-0 h-px origin-left transition-transform duration-350 ease-[cubic-bezier(0.22,1,0.36,1)]",
-          error ? "bg-[#b4231f]" : "bg-(--ed-ink)",
-          focused ? "scale-x-100" : "scale-x-0"
-        )}
-      />
+      >
+        {children}
+      </div>
 
       {error && (
         <p className="mt-2 text-[12px] leading-snug text-[#b4231f]">{error}</p>
@@ -83,7 +72,7 @@ function Frame({
 }
 
 const inputCls =
-  "w-full bg-transparent pt-2.5 pb-2.5 text-[clamp(1rem,1.6vw,1.15rem)] text-(--ed-ink) placeholder:text-(--ed-ink-2)/60 outline-none";
+  "w-full bg-transparent px-4 py-3 text-[15px] text-(--ed-ink) placeholder:text-(--ed-ink-2)/60 outline-none";
 
 export function UnderlineField({
   label,
@@ -108,8 +97,8 @@ export function UnderlineField({
       label={label}
       htmlFor={id}
       focused={focused}
-      filled={value.length > 0}
       error={error}
+      required={required}
       className={className}
     >
       <input
@@ -148,8 +137,8 @@ export function UnderlineTextarea({
       label={label}
       htmlFor={id}
       focused={focused}
-      filled={value.length > 0}
       error={error}
+      required={required}
       className={className}
     >
       <textarea
@@ -163,7 +152,7 @@ export function UnderlineTextarea({
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         rows={5}
-        className={cn(inputCls, "min-h-[190px] resize-y leading-relaxed")}
+        className={cn(inputCls, "min-h-40 resize-y leading-relaxed")}
       />
     </Frame>
   );

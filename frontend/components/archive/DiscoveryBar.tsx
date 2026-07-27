@@ -101,9 +101,12 @@ export default function DiscoveryBar({
       <div
         className={cn(
           "sticky top-14 z-40 transition-all duration-400",
+          // when stuck, a matching glass panel (::before) fills the strip the
+          // hidden navbar vacates above the bar, so cards don't scroll through it
+          "before:pointer-events-none before:absolute before:inset-x-0 before:bottom-full before:h-14 before:transition-opacity before:duration-400",
           stuck
-            ? "border-b border-(--ed-line-soft) bg-(--ed-bg)/80 backdrop-blur-xl"
-            : "border-b border-transparent"
+            ? "border-b border-(--ed-line-soft) bg-(--ed-bg) before:bg-(--ed-bg) before:opacity-100"
+            : "border-b border-transparent before:opacity-0"
         )}
       >
         <div className="ed-px mx-auto w-full max-w-[1760px]">

@@ -3,7 +3,6 @@
 import { useRef } from "react";
 import type { MotionValue } from "motion/react";
 import {
-  cubicBezier,
   motion,
   useMotionTemplate,
   useReducedMotion,
@@ -11,7 +10,6 @@ import {
   useTransform,
 } from "motion/react";
 import { EASE } from "@/lib/motion";
-import { SectionLabel } from "@/components/home/editorial";
 
 /* 03 — OUR APPROACH
    The quiet-then-bold beat: after the image-heavy showcase, a dark chapter
@@ -20,11 +18,18 @@ import { SectionLabel } from "@/components/home/editorial";
    closing line gains letter-spacing as you scroll on: a first impression,
    literally opening up. */
 
+/* The closing phrase is split into its own two lines ("first" / "impressions.")
+   rather than left to wrap. The last line's letter-spacing is scroll-animated,
+   and a wrapping multi-word line sits right on its wrap boundary at common
+   desktop widths — so the extra width would flip "impressions." between rows
+   as you scroll (a visible flicker). One word per line makes the layout
+   deterministic: the spacing animates without ever changing the row count. */
 const LINES = [
   "We don't just",
   "design themes.",
   "We design",
-  "first impressions.",
+  "first",
+  "impressions.",
 ];
 
 /* One typographic line whose mask-reveal is driven directly by scroll.
@@ -33,14 +38,14 @@ const LINES = [
 function Line({
   line,
   index,
-  isLast,
+  isClosing,
   progress,
   reduced,
   letterSpacing,
 }: {
   line: string;
   index: number;
-  isLast: boolean;
+  isClosing: boolean;
   progress: MotionValue<number>;
   reduced: boolean;
   letterSpacing: MotionValue<string>;
@@ -56,14 +61,17 @@ function Line({
   // Fallback simple opacity reveal for reduced-motion
   const opacity = useTransform(progress, [start, end], [0.2, 1]);
 
-  const fontStyle = "ed-display text-[clamp(3rem,8.5vw,9.5rem)] block will-change-transform";
+  const fontStyle =
+    "ed-display text-[clamp(3rem,8.5vw,9.5rem)] block will-change-transform " +
+    // closing lines never wrap, so the animated letter-spacing can't reflow them
+    (isClosing ? "whitespace-nowrap" : "");
 
   return (
     <span
       // editorial asymmetry — alternating indents, nothing centred
       className={
         "block overflow-hidden pb-[0.06em] " +
-        (index === 1 ? "pl-[8vw]" : index === 3 ? "pl-[16vw]" : "")
+        (index === 1 ? "pl-[8vw]" : index >= 3 ? "pl-[16vw]" : "")
       }
     >
       <span className="relative inline-block">
@@ -72,7 +80,7 @@ function Line({
           style={
             reduced
               ? { opacity }
-              : isLast
+              : isClosing
               ? { letterSpacing }
               : {}
           }
@@ -85,7 +93,7 @@ function Line({
         {!reduced && (
           <motion.span
             style={
-              isLast
+              isClosing
                 ? { clipPath, letterSpacing }
                 : { clipPath }
             }
@@ -189,7 +197,8 @@ export default function BrandStatement() {
               key={line}
               line={line}
               index={i}
-              isLast={i === LINES.length - 1}
+              // the closing phrase is the last two lines ("first" / "impressions.")
+              isClosing={i >= LINES.length - 2}
               progress={scrollYProgress}
               reduced={reduced}
               letterSpacing={letterSpacing}

@@ -41,7 +41,13 @@ export default function ArchiveCard({
         ? "Featured"
         : null;
 
-  const altShot = theme.screenshots?.find((s) => s && s !== theme.image) ?? null;
+  // prefer a real second screenshot for the hover wipe; when a theme only has
+  // one image, fall back to it so EVERY card still slides — the fallback layer
+  // is shown as a filled, slightly-zoomed crop (vs the base object-contain) so
+  // the reveal still reads as motion instead of an identical frame.
+  const distinctShot = theme.screenshots?.find((s) => s && s !== theme.image) ?? null;
+  const altShot = distinctShot ?? theme.image ?? null;
+  const altIsFallback = !distinctShot;
   const num = String(number).padStart(3, "0");
 
   return (
@@ -79,15 +85,26 @@ export default function ArchiveCard({
                 loaded ? "opacity-100 scale-100" : "opacity-0 scale-[1.02]"
               )}
             />
-            {/* real second screenshot wipes in from the bottom on hover */}
+            {/* second screenshot (or a zoomed crop of the same image) wipes in
+                from the bottom on hover — so every card slides consistently */}
             {altShot && (
               <Image
                 src={altShot}
                 alt=""
                 aria-hidden
                 fill
+                // eager + async decode so the wipe layer is always ready before
+                // hover — otherwise the reveal opens onto an undecoded image and
+                // the banner appears to "pop" instead of sliding in
+                loading="eager"
+                decoding="async"
                 sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
-                className="absolute inset-0 object-cover object-top [clip-path:inset(100%_0_0_0)] transition-[clip-path] duration-600 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:[clip-path:inset(0_0_0_0)]"
+                className={cn(
+                  "absolute inset-0 object-cover [clip-path:inset(100%_0_0_0)] transition-[clip-path] duration-600 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:[clip-path:inset(0_0_0_0)]",
+                  // fallback (single-image theme) = same image, so reveal a
+                  // zoomed lower crop; otherwise show the real 2nd screenshot
+                  altIsFallback ? "scale-[1.22] object-bottom" : "object-top"
+                )}
               />
             )}
           </>
@@ -107,9 +124,9 @@ export default function ArchiveCard({
         <button
           type="button"
           onClick={() => onQuickView(theme)}
-          className="group/btn relative overflow-hidden absolute bottom-3 right-3 z-20 flex items-center gap-1.5 rounded-xl bg-white/70 px-3.5 py-2 text-[10px] font-medium uppercase tracking-[0.16em] text-[#111] opacity-0 backdrop-blur-md transition-all duration-300 hover:bg-white focus-visible:opacity-100 group-hover:opacity-100"
+          className="group/btn absolute bottom-3 right-3 z-20 overflow-hidden flex items-center gap-1.5 rounded-xl bg-white/70 px-3.5 py-2 text-[10px] font-medium uppercase tracking-[0.16em] text-[#111] opacity-0 backdrop-blur-md transition-all duration-300 hover:bg-white focus-visible:opacity-100 group-hover:opacity-100"
         >
-          <span className="w-36 h-36 rounded rotate-[-40deg] bg-purple-600 absolute bottom-0 left-0 -translate-x-full ease-out duration-500 transition-all translate-y-full mb-6 ml-6 group-hover/btn:ml-0 group-hover/btn:mb-20 group-hover/btn:translate-x-0 pointer-events-none" />
+          <span className="w-36 h-36 rounded rotate-[-40deg] bg-blue-700 absolute bottom-0 left-0 -translate-x-full ease-out duration-500 transition-all translate-y-full mb-6 ml-6 group-hover/btn:ml-0 group-hover/btn:mb-20 group-hover/btn:translate-x-0 pointer-events-none" />
           <span className="relative z-10 flex items-center gap-1.5 transition-colors duration-300 ease-in-out group-hover/btn:text-white">
             <Expand aria-hidden className="size-3" />
             Quick view

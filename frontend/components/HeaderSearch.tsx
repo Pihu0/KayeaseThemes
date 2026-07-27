@@ -46,10 +46,10 @@ export default function HeaderSearch() {
       </Button>
 
       {open && (
-        <div className="absolute inset-x-0 top-full border-b bg-background/95 shadow-sm backdrop-blur">
+        <div className="absolute inset-x-0 top-full px-4 pt-2">
           <form
             onSubmit={submit}
-            className="mx-auto flex max-w-[1600px] items-center gap-2 px-4 py-3 sm:px-6 lg:px-8"
+            className="mx-auto flex w-full max-w-4xl items-center gap-2 rounded-full border border-border/60 bg-background/80 px-4 py-2 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.08)] backdrop-blur-md dark:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.5)]"
           >
             <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
             <input

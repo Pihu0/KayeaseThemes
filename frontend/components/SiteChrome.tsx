@@ -29,7 +29,7 @@ export default function SiteChrome({
     BARE_ROUTES.has(pathname) ||
     BARE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
-  const showCTA = !bare && pathname !== "/contact" && pathname !== "/register";
+  const showCTA = !bare && pathname !== "/customdesign";
 
   return (
     <>

@@ -95,7 +95,7 @@ export default function FinalCTA({ themes }: { themes: Theme[] }) {
           <EdButton href="/themes" invert>
             Explore All Themes
           </EdButton>
-          <EdLink href="/contact" onDark>
+          <EdLink href="/customdesign" onDark>
             Talk to Us
           </EdLink>
         </motion.div>

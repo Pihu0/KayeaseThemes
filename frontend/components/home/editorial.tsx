@@ -33,37 +33,67 @@ export function SectionLabel({
   );
 }
 
-/** PRIMARY — filled button with arrow that nudges ↗ on hover. Magnetic. */
+/** PRIMARY — filled button with a brand-blue sweep + arrow that nudges on hover.
+   Magnetic. Renders as a link (href), an action button (onClick), or a form
+   submit (type="submit"). This is the single source of truth for primary CTAs
+   across the site — style it here and every CTA stays in sync. */
 export function EdButton({
   href,
+  onClick,
+  type = "button",
+  disabled = false,
+  icon,
   children,
   invert = false,
   className,
 }: {
-  href: string;
+  /** render as a link (navigation) — mutually exclusive with onClick */
+  href?: string;
+  /** render as a button (in-page action) */
+  onClick?: () => void;
+  /** button behaviour — "submit" wires it to the enclosing form */
+  type?: "button" | "submit";
+  /** disables the button variant (e.g. while a form is sending) */
+  disabled?: boolean;
+  /** trailing icon; defaults to the ↗ arrow. Inherits the hover nudge. */
+  icon?: React.ReactNode;
   children: string;
   /** true on dark chapters: light fill, dark text */
   invert?: boolean;
   className?: string;
 }) {
+  const shared = cn(
+    "group relative inline-flex h-12 items-center justify-center gap-2.5 overflow-hidden rounded-xl px-6 text-[13px] font-medium uppercase tracking-[0.14em] transition-all duration-300 border border-black/10 dark:border-white/10 outline-none select-none",
+    invert
+      ? "bg-white text-black hover:border-primary dark:bg-neutral-900 dark:text-white"
+      : "bg-white text-black hover:border-primary dark:bg-neutral-900 dark:text-white",
+    disabled && "pointer-events-none opacity-60",
+    className
+  );
+
+  const inner = (
+    <>
+      <span aria-hidden className="pointer-events-none absolute -inset-y-6 left-[-25%] w-[150%] -translate-x-[160%] skew-x-[-16deg] bg-blue-700 transition-transform duration-500 ease-out group-hover:translate-x-0" />
+      <span className="relative z-10 flex items-center gap-2.5 text-black dark:text-white transition-colors duration-300 ease-in-out group-hover:text-white">
+        <TextRoll>{children}</TextRoll>
+        <span className="transition-transform duration-300 ease-out group-hover:-translate-y-0.5 group-hover:translate-x-0.5">
+          {icon ?? <ArrowUpRight className="size-4" />}
+        </span>
+      </span>
+    </>
+  );
+
   return (
     <Magnetic className="inline-block">
-      <Link
-        href={href}
-        className={cn(
-          "group relative inline-flex h-12 items-center justify-center gap-2.5 overflow-hidden rounded-xl px-6 text-[13px] font-medium uppercase tracking-[0.14em] transition-all duration-300 border border-black/10 dark:border-white/10 outline-none select-none",
-          invert
-            ? "bg-white text-black hover:border-purple-600 dark:bg-neutral-900 dark:text-white"
-            : "bg-white text-black hover:border-purple-600 dark:bg-neutral-900 dark:text-white",
-          className
-        )}
-      >
-        <span className="w-56 h-56 rounded rotate-[-40deg] bg-purple-600 absolute bottom-0 left-0 -translate-x-full ease-out duration-500 transition-all translate-y-full mb-9 ml-9 group-hover:ml-0 group-hover:mb-32 group-hover:translate-x-0 pointer-events-none" />
-        <span className="relative z-10 flex items-center gap-2.5 text-black dark:text-white transition-colors duration-300 ease-in-out group-hover:text-white">
-          <TextRoll>{children}</TextRoll>
-          <ArrowUpRight className="size-4 transition-transform duration-300 ease-out group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-        </span>
-      </Link>
+      {href ? (
+        <Link href={href} className={shared}>
+          {inner}
+        </Link>
+      ) : (
+        <button type={type} onClick={onClick} disabled={disabled} className={shared}>
+          {inner}
+        </button>
+      )}
     </Magnetic>
   );
 }
