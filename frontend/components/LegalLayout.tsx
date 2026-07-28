@@ -12,7 +12,7 @@ export function LegalLayout({
   children: ReactNode;
 }) {
   return (
-    <main className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6">
+    <main className="mx-auto w-full max-w-3xl px-4 pt-32 pb-20 sm:px-6 sm:pt-36 sm:pb-24">
       <header className="border-b pb-8">
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{title}</h1>
         <p className="mt-3 text-sm text-muted-foreground">

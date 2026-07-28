@@ -5,6 +5,28 @@ import { motion } from "motion/react";
 import { ArrowRight, Sparkles, Paintbrush, Code, Layout } from "lucide-react";
 import { EASE } from "@/lib/motion";
 
+/* ── shared scroll-trigger transition presets ── */
+const fadeUp = (delay = 0) => ({
+  initial: { opacity: 0, y: 40 } as const,
+  whileInView: { opacity: 1, y: 0 } as const,
+  viewport: { once: true, amount: 0.3 } as const,
+  transition: { duration: 0.7, delay, ease: EASE },
+});
+
+const fadeIn = (delay = 0) => ({
+  initial: { opacity: 0 } as const,
+  whileInView: { opacity: 1 } as const,
+  viewport: { once: true, amount: 0.3 } as const,
+  transition: { duration: 0.6, delay, ease: EASE },
+});
+
+const scaleIn = (delay = 0) => ({
+  initial: { opacity: 0, scale: 0.92 } as const,
+  whileInView: { opacity: 1, scale: 1 } as const,
+  viewport: { once: true, amount: 0.2 } as const,
+  transition: { duration: 0.8, delay, ease: EASE },
+});
+
 export default function CustomDesignCTA() {
   return (
     <section 
@@ -12,46 +34,63 @@ export default function CustomDesignCTA() {
       className="relative overflow-hidden bg-[#0F172A] text-[#F8FAFC] py-24 sm:py-32 border-t border-white/10"
     >
       {/* ── background blueprint pattern & glow ── */}
-      <div 
+      <motion.div 
+        {...fadeIn(0)}
         className="absolute inset-0 pointer-events-none opacity-25"
         style={{
           backgroundImage: "linear-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.05) 1px, transparent 1px)",
           backgroundSize: "40px 40px",
         }}
       />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/10 dark:bg-blue-500/5 rounded-full blur-[150px] pointer-events-none" />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.6 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={{ duration: 1.2, ease: EASE }}
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/10 dark:bg-blue-500/5 rounded-full blur-[150px] pointer-events-none"
+      />
 
       <div className="ed-px mx-auto max-w-[1400px] relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
           {/* ── left text content ── */}
           <div className="lg:col-span-7 space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-blue-400">
+            <motion.div
+              {...fadeUp(0)}
+              className="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-blue-400"
+            >
               <Sparkles className="size-3.5 animate-pulse" />
               <span>Tailored Solutions</span>
-            </div>
+            </motion.div>
 
-            <h2 
+            <motion.h2 
+              {...fadeUp(0.1)}
               className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-tight"
               style={{ fontFamily: "var(--font-display)" }}
             >
               Want a Custom <br className="hidden sm:inline" />
               Design & Setup?
-            </h2>
+            </motion.h2>
 
-            <p className="text-base sm:text-lg text-slate-400 max-w-xl leading-relaxed">
+            <motion.p
+              {...fadeUp(0.2)}
+              className="text-base sm:text-lg text-slate-400 max-w-xl leading-relaxed"
+            >
               If our premium themes don&apos;t match your unique goals, our custom agency team is ready to build a bespoke, lightning-fast digital experience designed specifically for your brand.
-            </p>
+            </motion.p>
 
-            <div className="flex flex-wrap gap-4 pt-4">
+            <motion.div {...fadeUp(0.3)} className="flex flex-wrap gap-4 pt-4">
               <EdButton href="/customdesign" icon={<ArrowRight className="size-4" />}>
                 Request a Custom Design
               </EdButton>
-            </div>
+            </motion.div>
           </div>
 
           {/* ── right animated graphic showcase ── */}
-          <div className="lg:col-span-5 relative h-[320px] sm:h-[400px] flex items-center justify-center">
+          <motion.div
+            {...scaleIn(0.15)}
+            className="lg:col-span-5 relative h-[320px] sm:h-[400px] flex items-center justify-center"
+          >
             
             {/* blueprint layout frame */}
             <div className="relative w-full max-w-[380px] aspect-square rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-2xl backdrop-blur-xl">
@@ -130,7 +169,7 @@ export default function CustomDesignCTA() {
               <span>custom_setup.config</span>
             </motion.div>
 
-          </div>
+          </motion.div>
 
         </div>
       </div>

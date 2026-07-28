@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { animate, motion, useInView, useReducedMotion } from "motion/react";
 import { EASE } from "@/lib/motion";
-import { Zap, Monitor, Cpu, type LucideIcon } from "lucide-react";
+import { Code, Heart, LifeBuoy, type LucideIcon } from "lucide-react";
 
 type WhyBlock = {
   n: string;
@@ -25,29 +25,29 @@ export default function WhyKayease({ stats }: { stats: RealStats }) {
   const blocks = [
     {
       n: "01",
-      title: "Built for speed.",
-      description: "Performance-first foundations, optimized assets, and fast first paint.",
-      statValue: stats.themes,
-      statLabel: "Themes Available",
-      icon: Zap,
+      title: "Expert craftsmanship.",
+      description: "Every line of code is meticulously written by our seasoned developers.",
+      statValue: 15,
+      statLabel: "Years combined experience",
+      icon: Code,
       isTop: true,
     },
     {
       n: "02",
-      title: "Made for every screen.",
-      description: "Responsive layouts optimized for desktop, tablet, and mobile.",
-      statValue: stats.categories,
-      statLabel: "Industries covered",
-      icon: Monitor,
+      title: "Client-centric approach.",
+      description: "We partner with you closely to ensure your vision is realized perfectly.",
+      statValue: 500,
+      statLabel: "Happy clients globally",
+      icon: Heart,
       isTop: false,
     },
     {
       n: "03",
-      title: "Built to evolve.",
-      description: "Flexible sections, custom layouts, and brand-consistent styling.",
-      statValue: stats.frameworks,
-      statLabel: "Frameworks supported",
-      icon: Cpu,
+      title: "End-to-end support.",
+      description: "From initial concept to deployment and beyond, we've got you covered.",
+      statValue: 24,
+      statLabel: "Hour support response",
+      icon: LifeBuoy,
       isTop: true,
     },
   ];
@@ -64,10 +64,13 @@ export default function WhyKayease({ stats }: { stats: RealStats }) {
       <div className="ed-px mx-auto max-w-[1400px]">
         <h2
           style={{ fontFamily: "var(--font-display)" }}
-          className="relative z-10 text-center text-[clamp(2.25rem,6vw,3.5rem)] font-bold tracking-tight text-(--primary)"
+          className="relative z-10 text-center text-[clamp(2.25rem,6vw,3.5rem)] font-bold tracking-tight text-(--ed-ink)"
         >
           Why Kayease
         </h2>
+        <p className="relative z-10 mx-auto mt-5 max-w-xl px-6 text-center text-base leading-relaxed text-(--ed-ink-2) sm:text-lg dark:text-white/60">
+          We are more than just a theme marketplace. We are a dedicated team of experts committed to building better digital experiences.
+        </p>
 
         {/* Desktop Staggered Grid Timeline */}
         <div className="relative w-full h-[520px] hidden md:block mt-16">

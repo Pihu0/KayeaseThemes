@@ -113,12 +113,12 @@ const css = `
 
 /* next-themes toggles .dark on <html> — restore the black art direction */
 .dark .site-footer {
-  --ft-bg: #23221E;
+  --ft-bg: #0B0F19;
   --ft-ink: #F8FAFC;
   --ft-nav: rgba(248, 250, 252, 0.88);
   --ft-legal: rgba(248, 250, 252, 0.52);
   --ft-mark: #2563eb;
-  --ft-mark-cut: #23221E;
+  --ft-mark-cut: #0B0F19;
   --ft-dot: 248 250 252;
 }
 

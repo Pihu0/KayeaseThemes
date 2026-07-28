@@ -11,7 +11,9 @@ import {
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 import { EASE } from "@/lib/motion";
+import { useScroll, useMotionValueEvent, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
+import { useIsDesktop } from "@/lib/motion";
 import type {
   ArchiveFilters,
   FacetEntry,
@@ -54,16 +56,20 @@ export default function DiscoveryBar({
      leaves the viewport (behind the navbar) the bar is "stuck" ---- */
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [stuck, setStuck] = useState(false);
-  useEffect(() => {
-    const el = sentinelRef.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([entry]) => setStuck(!entry.isIntersecting),
-      { rootMargin: "-64px 0px 0px 0px" }
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
+  
+  const desktop = useIsDesktop();
+  const reduced = useReducedMotion();
+  const morphActive = desktop && !reduced;
+  
+  const { scrollY } = useScroll();
+  useMotionValueEvent(scrollY, "change", () => {
+    if (sentinelRef.current) {
+      // getBoundingClientRect includes the parent's transform, so this is
+      // perfectly accurate even when the whole container is translated down
+      const top = sentinelRef.current.getBoundingClientRect().top;
+      setStuck(top <= 64);
+    }
+  });
 
   /* ---- debounced search (URL updates 250ms after the last keystroke) ---- */
   const [query, setQuery] = useState(filters.search);
@@ -100,7 +106,8 @@ export default function DiscoveryBar({
 
       <div
         className={cn(
-          "sticky top-14 z-40 transition-all duration-400",
+          "z-40 transition-all duration-400",
+          !morphActive && "sticky top-14",
           // when stuck, a matching glass panel (::before) fills the strip the
           // hidden navbar vacates above the bar, so cards don't scroll through it
           "before:pointer-events-none before:absolute before:inset-x-0 before:bottom-full before:h-14 before:transition-opacity before:duration-400",

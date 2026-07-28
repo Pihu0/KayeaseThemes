@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Lenis from "lenis";
-import { MotionConfig, useReducedMotion } from "motion/react";
+import { AnimatePresence, MotionConfig, motion, useScroll, useTransform, useReducedMotion } from "motion/react";
 import { useIsDesktop } from "@/lib/motion";
 import { CursorProvider } from "@/components/home/cursor";
 import ArchiveHeader from "@/components/archive/ArchiveHeader";
@@ -82,6 +82,7 @@ export default function ArchiveExperience({
   const reduced = useReducedMotion();
   const desktop = useIsDesktop();
   const pathname = usePathname();
+  const router = useRouter();
   const searchParams = useSearchParams();
 
   /* Own the scroll so the browser never restores/anchors us away from the top. */
@@ -90,60 +91,19 @@ export default function ArchiveExperience({
     window.scrollTo(0, 0);
   }, []);
 
-  /* Lenis smooth scroll — same setup as the homepage shell. We lenis.stop() and
-     hold the page at the top until the user actually scrolls (or a long
-     fallback), so involuntary load-time scroll (Lenis momentum / layout shifts /
-     image loads) can never drag the page — and thus the morph — off the arc
-     before the entrance has played. The user's first scroll releases it. */
+  /* Lenis smooth scroll setup. */
   useEffect(() => {
     if (reduced) return;
-    const html = document.documentElement;
     const lenis = new Lenis({ lerp: 0.115 });
-    lenis.scrollTo(0, { immediate: true });
-    lenis.stop();
-    // genuinely non-scrollable so NOTHING (native anchoring, Lenis, layout
-    // shifts) can move the page off the arc during the entrance
-    html.style.overflow = "hidden";
-    window.scrollTo(0, 0);
-    let released = false;
-    const release = () => {
-      if (released) return;
-      released = true;
-      html.style.overflow = "";
-      lenis.scrollTo(0, { immediate: true });
-      lenis.start();
-      window.removeEventListener("wheel", release);
-      window.removeEventListener("touchstart", release);
-      window.removeEventListener("pointerdown", release);
-      window.removeEventListener("keydown", onKey);
-      clearTimeout(fallback);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (["ArrowDown", "ArrowUp", "PageDown", "PageUp", "Home", "End", " "].includes(e.key))
-        release();
-    };
-    // don't listen until the intro is underway, so an early flick can't skip it
-    const arm = setTimeout(() => {
-      window.addEventListener("wheel", release, { passive: true });
-      window.addEventListener("touchstart", release, { passive: true });
-      window.addEventListener("pointerdown", release, { passive: true });
-      window.addEventListener("keydown", onKey);
-    }, 3200);
-    const fallback = setTimeout(release, 9000);
+    (window as any).lenis = lenis;
     let raf = requestAnimationFrame(function loop(time) {
       lenis.raf(time);
       raf = requestAnimationFrame(loop);
     });
     return () => {
-      clearTimeout(arm);
-      clearTimeout(fallback);
-      window.removeEventListener("wheel", release);
-      window.removeEventListener("touchstart", release);
-      window.removeEventListener("pointerdown", release);
-      window.removeEventListener("keydown", onKey);
       cancelAnimationFrame(raf);
-      html.style.overflow = "";
       lenis.destroy();
+      delete (window as any).lenis;
     };
   }, [reduced]);
 
@@ -169,7 +129,8 @@ export default function ArchiveExperience({
     });
     params.delete("page"); // legacy param from the old paginated page
     const qs = params.toString();
-    window.history.replaceState(null, "", qs ? `${pathname}?${qs}` : pathname);
+    const newUrl = qs ? `${pathname}?${qs}` : pathname;
+    router.replace(newUrl, { scroll: false });
   };
   const clearAll = () =>
     setFilters({ search: "", category: "", framework: "", pricing: "", sort: filters.sort });
@@ -225,20 +186,38 @@ export default function ArchiveExperience({
      would hide the first cards while nothing ever flies in to reveal them. ---- */
   const galleryGridRef = useRef<HTMLUListElement>(null);
   const [landed, setLanded] = useState(false);
-  const morphActive =
-    desktop &&
-    !reduced &&
-    view === "grid" &&
-    activeFilterCount === 0 &&
-    filters.search.trim() === "" &&
-    filters.sort === "" &&
-    filtered.length > 0;
-  const morphN = morphActive ? Math.min(9, filtered.length) : 0;
+  const morphActive = desktop && !reduced;
+  const morphN = morphActive ? Math.min(9, themes.length) : 0;
+  const morphCountForGrid =
+    activeFilterCount === 0 && filters.search.trim() === "" && filters.sort === ""
+      ? morphN
+      : 0;
+
+  const [vh, setVh] = useState(900);
+  useEffect(() => {
+    setVh(window.innerHeight);
+    const onResize = () => setVh(window.innerHeight);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  const { scrollY } = useScroll();
+  const pinDistance = vh * 2; // Stretch the animation over 2 screen heights
+  
+  // Parallax: push the content down by half the scroll distance.
+  // When user scrolls 200vh, content is pushed down 100vh.
+  // Net visual movement: content moves UP by 100vh (slower scroll).
+  // This allows the header to gracefully scroll off, and the grid to scroll up,
+  // but forces the user to scroll 200vh to do it, making it harder to skip.
+  const contentY = useTransform(scrollY, [0, pinDistance], [0, vh], { clamp: true });
+  
+  // We also export scrollY to HeroCards so it can use it instead of first.top
+  const morphProgress = useTransform(scrollY, [0, pinDistance], [0, 1], { clamp: true });
 
   return (
     <MotionConfig reducedMotion="user">
       <CursorProvider>
-        <div className="editorial relative overflow-x-clip">
+        <div className="editorial relative overflow-x-clip" style={{ paddingBottom: morphActive ? vh : 0 }}>
           {/* paints behind the transparent navbar + under overscroll */}
           <div aria-hidden className="fixed inset-0 -z-10 bg-(--ed-bg)" />
           {/* the same near-invisible film grain as the homepage */}
@@ -250,57 +229,61 @@ export default function ArchiveExperience({
             }}
           />
 
-          <ArchiveHeader
-            total={total || themes.length}
-            themes={themes}
-            onExplore={scrollToGallery}
-          />
+          <motion.div style={morphActive ? { y: contentY } : undefined}>
+                <ArchiveHeader
+                  total={total || themes.length}
+                  themes={themes}
+                  onExplore={scrollToGallery}
+                  showStripHero={!morphActive}
+                />
 
-          <DiscoveryBar
-            filters={filters}
-            setFilters={setFilters}
-            categories={categoryFacets}
-            frameworks={frameworkFacets}
-            totalCount={themes.length}
-            activeFilterCount={activeFilterCount}
-            onOpenFilters={() => setDrawerOpen(true)}
-          />
+                <DiscoveryBar
+                  filters={filters}
+                  setFilters={setFilters}
+                  categories={categoryFacets}
+                  frameworks={frameworkFacets}
+                  totalCount={themes.length}
+                  activeFilterCount={activeFilterCount}
+                  onOpenFilters={() => setDrawerOpen(true)}
+                />
 
-          {/* the covers fly from the hero arc into the real gallery cells */}
-          <HeroMorph
-            themes={filtered}
-            count={morphN}
-            gridRef={galleryGridRef}
-            active={morphActive}
-            onLanded={setLanded}
-          />
-
-          <div ref={galleryRef} className="scroll-mt-36">
-            {view === "grid" ? (
-              <ThemeGallery
-                themes={filtered}
-                allThemes={themes}
-                filters={filters}
-                setFilters={setFilters}
-                clearAll={clearAll}
-                view={view}
-                setView={setView}
-                onQuickView={setQuickView}
+                <div ref={galleryRef} className="scroll-mt-36">
+                  {view === "grid" ? (
+                    <ThemeGallery
+                      themes={filtered}
+                      allThemes={themes}
+                      filters={filters}
+                      setFilters={setFilters}
+                      clearAll={clearAll}
+                      view={view}
+                      setView={setView}
+                      onQuickView={setQuickView}
+                      gridRef={galleryGridRef}
+                      morphCount={morphCountForGrid}
+                      morphLanded={landed}
+                    />
+                  ) : (
+                    <IndexView
+                      themes={filtered}
+                      filters={filters}
+                      setFilters={setFilters}
+                      clearAll={clearAll}
+                      view={view}
+                      setView={setView}
+                    />
+                  )}
+                </div>
+              </motion.div>
+              
+              {/* 3D floating arc cards — fixed to viewport, rendering OVER the translated content */}
+              <HeroMorph
+                themes={themes}
+                count={morphN}
                 gridRef={galleryGridRef}
-                morphCount={morphN}
-                morphLanded={landed}
+                active={morphActive}
+                onLanded={setLanded}
+                morphProgress={morphProgress}
               />
-            ) : (
-              <IndexView
-                themes={filtered}
-                filters={filters}
-                setFilters={setFilters}
-                clearAll={clearAll}
-                view={view}
-                setView={setView}
-              />
-            )}
-          </div>
 
           <FilterDrawer
             open={drawerOpen}

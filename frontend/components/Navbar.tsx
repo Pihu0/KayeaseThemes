@@ -8,13 +8,14 @@ import { Menu, X, ArrowUpRight } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
-import HeaderSearch from "@/components/HeaderSearch";
+
 import Logo from "@/components/Logo";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/themes", label: "Themes" },
+  { href: "/customdesign", label: "Custom Design" },
 ];
 
 export default function Navbar() {
@@ -102,38 +103,37 @@ export default function Navbar() {
               {l.label}
             </Link>
           ))}
-        </div>
-
-        {/* Right: Controls & CTA button */}
-        <div className="flex items-center gap-2 pr-1">
-          <HeaderSearch />
-          <ThemeToggle />
-
-          {/* Admin link (if applicable) */}
           {user && user.role === "admin" && (
             <Link
               href="/admin"
               target="_self"
               className={cn(
-                "rounded-full px-3 py-1.5 text-xs font-semibold transition-all",
+                "rounded-full px-4 py-1.5 text-xs font-semibold tracking-wide transition-all duration-300",
                 pathname.startsWith("/admin")
-                  ? "text-(--primary)"
+                  ? "bg-white dark:bg-white/[0.08] text-(--primary) shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
               Admin
             </Link>
           )}
+        </div>
+
+        {/* Right: Controls & CTA button */}
+        <div className="flex items-center gap-2 pr-1">
+          <ThemeToggle />
 
           {/* Login/Logout link */}
           <div className="hidden items-center gap-2 lg:flex">
             {user ? (
-              <button
-                onClick={logout}
-                className="rounded-full px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
-              >
-                Logout
-              </button>
+              user.role === "admin" ? null : (
+                <button
+                  onClick={logout}
+                  className="rounded-full px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
+                >
+                  Logout
+                </button>
+              )
             ) : (
               <Link
                 href="/login"
@@ -149,19 +149,6 @@ export default function Navbar() {
               </Link>
             )}
           </div>
-
-          {/* Primary Action Button */}
-          <Link
-            href="/customdesign"
-            target="_self"
-            className={cn(
-              "group items-center gap-1.5 rounded-full px-5 py-2 text-xs font-bold uppercase tracking-wider shadow-sm transition-all duration-300 hidden md:inline-flex",
-              "bg-(--primary) text-white hover:bg-(--primary)/90 hover:shadow-md active:scale-95"
-            )}
-          >
-            <span>Custom Design</span>
-            <ArrowUpRight className="size-3.5 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-          </Link>
 
 
 
@@ -183,7 +170,7 @@ export default function Navbar() {
       {menuOpen && (
         <div className="mx-auto mt-2 w-full max-w-4xl rounded-3xl border border-border/60 bg-background/90 shadow-lg backdrop-blur-xl md:hidden pointer-events-auto">
           <div className="flex flex-col gap-1 px-5 py-4">
-            {[...navLinks, { href: "/customdesign", label: "Custom Design" }, { href: "/login", label: "Login" }].map((l) => (
+            {[...navLinks, ...(user ? [] : [{ href: "/login", label: "Login" }])].map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
@@ -210,15 +197,17 @@ export default function Navbar() {
                     AdminPanel
                   </Link>
                 )}
-                <button
-                  onClick={() => {
-                    logout();
-                    setMenuOpen(false);
-                  }}
-                  className="text-xs font-semibold text-muted-foreground hover:text-foreground"
-                >
-                  Logout
-                </button>
+                {user.role !== "admin" && (
+                  <button
+                    onClick={() => {
+                      logout();
+                      setMenuOpen(false);
+                    }}
+                    className="text-xs font-semibold text-muted-foreground hover:text-foreground"
+                  >
+                    Logout
+                  </button>
+                )}
               </div>
             )}
           </div>

@@ -5,15 +5,23 @@ import { useEffect, type RefObject } from "react";
 /* Small a11y/behavior hooks shared by the archive overlays
    (filter drawer, quick view). */
 
-/** Locks page scroll while an overlay is open. */
 export function useScrollLock(active: boolean) {
   useEffect(() => {
     if (!active) return;
     const el = document.documentElement;
     const prev = el.style.overflow;
     el.style.overflow = "hidden";
+    
+    if ((window as any).lenis) (window as any).lenis.stop();
+    const lockScroll = (e: Event) => e.preventDefault();
+    window.addEventListener("wheel", lockScroll, { passive: false });
+    window.addEventListener("touchmove", lockScroll, { passive: false });
+
     return () => {
       el.style.overflow = prev;
+      if ((window as any).lenis) (window as any).lenis.start();
+      window.removeEventListener("wheel", lockScroll);
+      window.removeEventListener("touchmove", lockScroll);
     };
   }, [active]);
 }

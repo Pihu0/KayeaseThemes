@@ -91,6 +91,7 @@ type FormState = {
   status: "draft" | "published";
   visible: boolean;
   featured: boolean;
+  priority: string;
 };
 
 function initial(theme?: Theme): FormState {
@@ -125,6 +126,7 @@ function initial(theme?: Theme): FormState {
     status: theme?.status ?? "published",
     visible: theme?.visible ?? true,
     featured: theme?.featured ?? false,
+    priority: theme ? String(theme.priority || 999) : "999",
   };
 }
 
@@ -167,6 +169,7 @@ export default function ThemeForm({ theme }: { theme?: Theme }) {
       slug: form.slug || slugify(form.title),
       price: form.pricingType === "free" ? 0 : Number(form.price),
       originalPrice: form.originalPrice ? Number(form.originalPrice) : 0,
+      priority: Number(form.priority) || 999,
     };
     try {
       if (isEdit) {
@@ -457,6 +460,23 @@ export default function ThemeForm({ theme }: { theme?: Theme }) {
                 className="h-4 w-4 accent-primary"
               />
             </label>
+            <div className="space-y-1.5 pt-2">
+              <Label htmlFor="priority">
+                Featured Priority
+              </Label>
+              <Input
+                id="priority"
+                type="number"
+                min="1"
+                max="999"
+                value={form.priority}
+                onChange={(e) => set("priority", e.target.value)}
+                placeholder="999"
+              />
+              <p className="text-xs text-muted-foreground">
+                Rank (1 = first). Use 999 for unranked themes.
+              </p>
+            </div>
           </Section>
 
           <Section icon={<DollarSign className="h-5 w-5" />} title="Pricing">

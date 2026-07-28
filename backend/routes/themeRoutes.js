@@ -9,10 +9,12 @@ const {
   deleteTheme,
 } = require("../controllers/themeController");
 const { protect, admin } = require("../middleware/authMiddleware");
+const validate = require("../middleware/validate");
+const { themeSchema } = require("../validations/schemas");
 
 // /api/themes
 // GET is public (browse themes); POST requires an admin
-router.route("/").get(getThemes).post(protect, admin, createTheme);
+router.route("/").get(getThemes).post(protect, admin, validate(themeSchema), createTheme);
 
 // Get by slug — declared BEFORE "/:id" so "slug" isn't treated as an id
 router.get("/slug/:slug", getThemeBySlug);
@@ -22,7 +24,7 @@ router.get("/slug/:slug", getThemeBySlug);
 router
   .route("/:id")
   .get(getThemeById)
-  .put(protect, admin, updateTheme)
+  .put(protect, admin, validate(themeSchema), updateTheme)
   .delete(protect, admin, deleteTheme);
 
 module.exports = router;

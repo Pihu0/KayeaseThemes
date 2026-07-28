@@ -38,6 +38,7 @@ export type Theme = {
   status: "draft" | "published";
   visible: boolean;
   featured: boolean;
+  priority?: number;
   // Stats
   downloads: number;
   views: number;

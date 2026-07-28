@@ -74,7 +74,7 @@ export default function DashboardPage() {
       label: "Messages",
       value: stats.messages,
       icon: Mail,
-      href: "/admin",
+      href: "/admin/contacts",
       cta: "View messages",
     },
   ];

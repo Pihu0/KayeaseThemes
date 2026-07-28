@@ -19,17 +19,19 @@ export default function ArchiveHeader({
   total,
   themes,
   onExplore,
+  showStripHero = false,
 }: {
   total: number;
   themes: Theme[];
   onExplore?: () => void;
+  showStripHero?: boolean;
 }) {
   const count = String(total).padStart(2, "0");
   const desktop = useIsDesktop();
 
   return (
     <header className={cn("relative", desktop && "min-h-screen")}>
-      <div className="ed-px mx-auto flex w-full max-w-275 flex-col items-center pt-16 text-center sm:pt-20">
+      <div className="ed-px mx-auto flex w-full max-w-275 flex-col items-center pt-28 text-center sm:pt-36">
         <motion.p
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -78,8 +80,8 @@ export default function ArchiveHeader({
         </motion.div>
       </div>
 
-      {/* mobile / reduced-motion: a plain strip (desktop covers live in the overlay) */}
-      {!desktop && (
+      {/* mobile / reduced-motion or index view: a plain strip */}
+      {showStripHero && (
         <div className="mt-14 pb-16 sm:mt-16 sm:pb-20">
           <StripHero themes={themes} />
         </div>

@@ -20,8 +20,8 @@ import {
 import { EASE, useIsDesktop } from "@/lib/motion";
 import TextRoll from "@/components/motion/TextRoll";
 import { SectionLabel, EdButton } from "@/components/home/editorial";
-import { useProjectCursor } from "@/components/home/cursor";
 import type { Theme } from "@/lib/types";
+import { DotLoader } from "@/components/ui/dot-loader";
 import { ArrowRight } from "lucide-react";
 
 /* 01 — HERO  (peel-deck, inspired by the Legion/Ovo scroll interaction)
@@ -168,7 +168,8 @@ function HeroRunway({
   const marqueeOpacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.05, 0.06, 0.03, 0.015]);
   
   const L = deck.length;
-  const skipIntro = reduced || introPlayed;
+  const skipIntroRef = useRef(reduced || introPlayed);
+  const skipIntro = skipIntroRef.current;
 
   /* The intro loader and the pinned peel-deck are authored assuming the hero
      starts at the very top. A browser back/refresh restores the previous
@@ -191,15 +192,16 @@ function HeroRunway({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* ---- intro state machine: loading → fullwidth → wiping → done ----
+  /* ---- intro state machine: loading → fullwidth → wiping → centered → shifting → done ----
      loading:   dark overlay with progress counter
      fullwidth: overlay dissolves, full-width hero banner visible, holds for a beat
-     wiping:    staggered curtain columns sweep down over the full-width banner,
-                vanishing it and revealing the small cards deck behind the sweep
-     done:      everything settled, left panel fades in, scroll-peel active ---- */
-  const [phase, setPhase] = useState<"loading" | "fullwidth" | "wiping" | "done">(
-    skipIntro ? "done" : "loading"
-  );
+     wiping:    staggered banner curtain strips lift up to reveal centered deck
+     centered:  deck holds in the CENTER (x: 0%) for a beat
+     shifting:  deck smoothly slides to the RIGHT (x: 21%)
+     done:      left text panel slides in (x: -35 → 0), scroll-peel active ---- */
+  const [phase, setPhase] = useState<
+    "loading" | "fullwidth" | "wiping" | "centered" | "shifting" | "done"
+  >(skipIntro ? "done" : "loading");
   const [pct, setPct] = useState(skipIntro ? 100 : 0);
   const [deckReady, setDeckReady] = useState(skipIntro);
 
@@ -218,18 +220,35 @@ function HeroRunway({
     return () => cancelAnimationFrame(raf);
   }, [skipIntro]);
 
-  // fullwidth → wiping: hold full-width banner for 1.4s, then start curtain wipe
+  // fullwidth → wiping: hold full-width banner briefly, then start curtain wipe
   useEffect(() => {
     if (phase !== "fullwidth") return;
-    introPlayed = true;
-    const id = setTimeout(() => setPhase("wiping"), 1400);
+    const id = setTimeout(() => setPhase("wiping"), 800);
     return () => clearTimeout(id);
   }, [phase]);
 
-  // wiping → done: curtain sweep takes ~1.5s; transition to done when panels clear
+  // wiping → centered: wait for the banner wipe strips to clear off screen
   useEffect(() => {
     if (phase !== "wiping") return;
-    const id = setTimeout(() => setPhase("done"), 1600);
+    setDeckReady(true);
+    const id = setTimeout(() => setPhase("centered"), 600);
+    return () => clearTimeout(id);
+  }, [phase]);
+
+  // centered → shifting: hold small cards in the CENTER briefly, then slide right
+  useEffect(() => {
+    if (phase !== "centered") return;
+    const id = setTimeout(() => setPhase("shifting"), 400);
+    return () => clearTimeout(id);
+  }, [phase]);
+
+  // shifting → done: deck slides right, then left text panel slides in
+  useEffect(() => {
+    if (phase !== "shifting") return;
+    const id = setTimeout(() => {
+      setPhase("done");
+      introPlayed = true;
+    }, 600);
     return () => clearTimeout(id);
   }, [phase]);
 
@@ -239,30 +258,22 @@ function HeroRunway({
     const html = document.documentElement;
     const prev = html.style.overflow;
     html.style.overflow = "hidden";
+    
+    if ((window as any).lenis) (window as any).lenis.stop();
+    const lockScroll = (e: Event) => e.preventDefault();
+    window.addEventListener("wheel", lockScroll, { passive: false });
+    window.addEventListener("touchmove", lockScroll, { passive: false });
+
     return () => {
       html.style.overflow = prev;
+      if ((window as any).lenis) (window as any).lenis.start();
+      window.removeEventListener("wheel", lockScroll);
+      window.removeEventListener("touchmove", lockScroll);
     };
   }, [phase]);
 
-  // Scale so the front card fills the FULL viewport width (height overflows and
-  // crops top/bottom, like the reference) before it shrinks into the deck.
-  // offsetWidth ignores the transform, so this stays correct mid-animation.
-  const [introScale, setIntroScale] = useState(2.3);
-  useEffect(() => {
-    const measure = () => {
-      const el = runwayRef.current?.querySelector<HTMLElement>(
-        "[data-hero-front]"
-      );
-      if (!el || !el.offsetWidth) return;
-      const s = (window.innerWidth * 0.985) / el.offsetWidth;
-      setIntroScale(Math.min(Math.max(s, 1.3), 5));
-    };
-    measure();
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, []);
-
   const show = skipIntro || phase !== "loading";
+  const deckShifted = skipIntro || phase === "shifting" || phase === "done";
   const settled = skipIntro || phase === "done";
 
   /* Which card is currently on top — drives the left-hand text panel. It
@@ -312,23 +323,29 @@ function HeroRunway({
       {(phase === "loading" || phase === "fullwidth") && (
         <HeroLoader phase={phase} pct={pct} />
       )}
-      {/* curtain wipe — sweeps over full-width banner to vanish it & reveal deck */}
-      {phase === "wiping" && (
-        <CurtainWipe onMidpoint={() => setDeckReady(true)} />
+      {/* the banner itself: a full-bleed hero image that, during the wipe, lifts
+          away in vertical strips (a curtain made of the banner) to reveal the
+          card deck settled behind it. No dark overlay — the banner is the wipe.
+          Unmount after wiping so the centered small deck cards are visible. */}
+      {(phase === "loading" || phase === "fullwidth" || phase === "wiping") && (
+        <BannerWipe
+          image={deck[0]?.image || ""}
+          phase={phase as "loading" | "fullwidth" | "wiping"}
+        />
       )}
 
       <div
         className={
           "relative flex flex-col overflow-clip " +
           (peelOn
-            ? "sticky top-0 h-screen justify-center"
+            ? "sticky top-0 h-screen justify-center max-md:justify-end max-md:pb-[8svh]"
             : "min-h-svh justify-center py-24")
         }
       >
         {/* ---- giant headline marquee, centred behind the deck ---- */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-1/2 z-0 -translate-y-1/2 overflow-hidden"
+          className="pointer-events-none absolute inset-x-0 top-1/2 max-md:top-[32%] z-0 -translate-y-1/2 overflow-hidden"
         >
           <AnimatePresence mode="wait">
             <motion.div
@@ -417,16 +434,15 @@ function HeroRunway({
           </div>
         </div>
 
-        {/* ---- left text panel (desktop): fades in once the deck settles,
-             then swaps its copy to the active card as you scroll ---- */}
+        {/* ---- left text panel (desktop): slides in from left after deck shifts right ---- */}
         {deskFx && (
           <motion.div
             initial={false}
             animate={{
               opacity: settled ? 1 : 0,
-              x: settled ? 0 : -28,
+              x: settled ? 0 : -45,
             }}
-            transition={{ duration: 0.9, ease: EASE, delay: skipIntro ? 0 : 0.15 }}
+            transition={{ duration: 0.85, ease: EASE }}
             style={{ pointerEvents: settled ? "auto" : "none" }}
             className="ed-px absolute inset-y-0 left-0 z-30 flex w-[48%] flex-row items-center gap-10"
           >
@@ -564,20 +580,17 @@ function HeroRunway({
           </motion.div>
         )}
 
-        {/* ---- the peel deck — centred during the intro, then slides right ---- */}
+        {/* ---- the peel deck — builds in center after wiping, then shifts to right ---- */}
         <motion.div
-          initial={false}
-          /* Always a defined target (never undefined) so the settled offset is
-             delivered as a real prop change. When the intro is skipped, `settled`
-             is true from the first render and only `deskFx` flips false→true
-             after mount; if this were gated to `undefined` while non-desktop,
-             Framer would skip applying the +21% and the deck would overlap the
-             copy (seen after a browser back-nav). */
-          animate={{
-            x: deskFx && settled ? "21%" : "0%",
-            scale: deskFx && settled ? 0.9 : 1,
+          initial={{
+            x: skipIntro && deskFx ? "21%" : "0%",
+            scale: skipIntro && deskFx ? 0.9 : 1,
           }}
-          transition={{ duration: 1, ease: EASE, delay: skipIntro ? 0 : 0.15 }}
+          animate={{
+            x: deskFx && deckShifted ? "21%" : "0%",
+            scale: deskFx && deckShifted ? 0.9 : 1,
+          }}
+          transition={{ duration: 0.95, ease: EASE }}
           className={
             deskFx
               ? "absolute inset-0 z-10 grid place-items-center"
@@ -597,7 +610,6 @@ function HeroRunway({
                 show={show}
                 settled={settled}
                 skipIntro={skipIntro}
-                introScale={introScale}
                 deckReady={deckReady}
                 scrollYProgress={scrollYProgress}
                 activeIndex={activeIndex}
@@ -727,7 +739,7 @@ function HeroLoader({
       animate={{ opacity: fading ? 0 : 1 }}
       transition={{ duration: 0.8, ease: EASE }}
     >
-      {/* progress read-out, fades out first */}
+      {/* pulsing dot loader & progress readout */}
       <motion.div
         animate={{ opacity: fading ? 0 : 1, y: fading ? -16 : 0 }}
         transition={{ duration: 0.35, ease: EASE }}
@@ -736,12 +748,12 @@ function HeroLoader({
         <p className="ed-label text-(--ed-ink-2-on-dark)">
           Kayease® / Loading
         </p>
-        <p className="ed-display text-[clamp(3rem,9vw,7rem)] tabular-nums">
-          {String(pct).padStart(3, "0")}
-        </p>
-        <div className="relative h-px w-[min(280px,60vw)] overflow-hidden bg-(--ed-line-on-dark)">
+        <div className="h-12 w-44 flex items-center justify-center">
+          <DotLoader />
+        </div>
+        <div className="relative h-px w-[min(240px,50vw)] overflow-hidden bg-(--ed-line-on-dark)">
           <motion.div
-            className="absolute inset-y-0 left-0 bg-(--ed-ink-on-dark)"
+            className="absolute inset-y-0 left-0 bg-[#6793fb]"
             style={{ width: `${pct}%` }}
           />
         </div>
@@ -753,27 +765,46 @@ function HeroLoader({
    that passes over the full-width banner, vanishing it and revealing the
    settled deck behind the panels as they exit below the screen ---------- */
 
-function CurtainWipe({ onMidpoint }: { onMidpoint: () => void }) {
-  // trigger deck swap right as the panels cover the full-width banner
-  useEffect(() => {
-    const id = setTimeout(onMidpoint, 500);
-    return () => clearTimeout(id);
-  }, [onMidpoint]);
-
+function BannerWipe({
+  image,
+  phase,
+}: {
+  image: string;
+  phase: "loading" | "fullwidth" | "wiping";
+}) {
+  // The banner is drawn as N adjacent vertical strips, each showing its own
+  // column of one full-bleed image. In `fullwidth` they sit together as a single
+  // seamless banner; in `wiping` each strip lifts up off the top on a stagger, so
+  // the banner peels away like a curtain and uncovers the card deck behind it.
+  const N = 6;
+  const wiping = phase === "wiping";
   return (
-    <div className="fixed inset-0 z-100 flex overflow-hidden pointer-events-none">
-      {Array.from({ length: 5 }).map((_, i) => (
+    <div className="fixed inset-0 z-90 overflow-hidden pointer-events-none">
+      {Array.from({ length: N }).map((_, i) => (
         <motion.div
           key={i}
-          initial={{ y: "-101%" }}
-          animate={{ y: "101%" }}
+          className="absolute top-0 h-full overflow-hidden"
+          style={{ left: `${(i * 100) / N}vw`, width: `${100 / N}vw` }}
+          initial={{ y: "0%" }}
+          animate={{ y: wiping ? "-101%" : "0%" }}
           transition={{
-            duration: 1.25,
+            duration: 0.7,
             ease: [0.76, 0, 0.24, 1],
-            delay: i * 0.07,
+            delay: wiping ? i * 0.06 : 0,
           }}
-          className="h-full flex-1 bg-(--ed-dark)"
-        />
+        >
+          {/* full-viewport slice of the banner, shifted left so this strip shows
+              only its own column — together the strips reform the whole image */}
+          <div
+            className="absolute top-0 h-full bg-cover bg-top"
+            style={{
+              left: `-${(i * 100) / N}vw`,
+              width: "100vw",
+              backgroundImage: image ? `url(${image})` : undefined,
+              backgroundColor: "var(--ed-bg-soft)",
+            }}
+          />
+        </motion.div>
       ))}
     </div>
   );
@@ -793,7 +824,6 @@ function DeckCard({
   show,
   settled,
   skipIntro,
-  introScale,
   deckReady,
   scrollYProgress,
   activeIndex,
@@ -807,12 +837,10 @@ function DeckCard({
   show: boolean;
   settled: boolean;
   skipIntro: boolean;
-  introScale: number;
   deckReady: boolean;
   scrollYProgress: MotionValue<number>;
   activeIndex: number;
 }) {
-  const cursor = useProjectCursor("View");
   const colors = getThemeColors(theme.slug);
   const isBase = index === count - 1;
   const isFront = index === 0;
@@ -885,35 +913,6 @@ function DeckCard({
     cardOverlayOpacity = 0;
   }
 
-  // Mouse-based 3D tilt
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const springConfig = { damping: 25, stiffness: 150 };
-  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [6, -6]), springConfig);
-  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-8, 8]), springConfig);
-
-
-
-  // Performance optimized spotlight positioning using MotionValues (no React re-renders)
-  const spotlightX = useMotionValue(0);
-  const spotlightY = useMotionValue(0);
-  const spotlightBg = useMotionTemplate`radial-gradient(circle 250px at ${spotlightX}px ${spotlightY}px, rgba(255, 255, 255, 0.12), transparent)`;
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!deskFx || index !== activeIndex) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
-    mouseX.set((e.clientX - rect.left) / width - 0.5);
-    mouseY.set((e.clientY - rect.top) / height - 0.5);
-    spotlightX.set(e.clientX - rect.left);
-    spotlightY.set(e.clientY - rect.top);
-  };
-
-  const handleMouseLeave = () => {
-    mouseX.set(0);
-    mouseY.set(0);
-  };
 
   // Glass reflection sweep — pause during scroll
   const [isScrolling, setIsScrolling] = useState(false);
@@ -931,36 +930,22 @@ function DeckCard({
     };
   }, []);
 
-  /* Intro animation:
-     - Before deckReady: Card 0 is visible at full-width (introScale), Cards 1..4 hidden.
-     - When deckReady becomes true (mid curtain wipe): Card 0 snaps to deck size (scale 1)
-       and Cards 1..4 cascade into view as the curtain panels sweep off the screen. */
+  /* Intro animation: the whole deck sits hidden until the banner starts lifting
+     away, then every card (front included) fans into place behind the rising
+     banner strips — front first, the rest cascading a beat behind it. */
   const introVariants: Variants = {
-    hidden: isFront
-      ? { scale: introScale, opacity: 1, y: 0 }
-      : { scale: 0.92, opacity: 0, y: 30 },
-    shown: isFront
-      ? {
-          scale: 1,
-          opacity: 1,
-          y: 0,
-          transition: {
-            type: "spring",
-            stiffness: 140,
-            damping: 22,
-          },
-        }
-      : {
-          scale: 1,
-          opacity: 1,
-          y: 0,
-          transition: {
-            type: "spring",
-            stiffness: 160,
-            damping: 20,
-            delay: (index - 1) * 0.12,
-          },
-        },
+    hidden: { scale: 0.92, opacity: 0, y: 30 },
+    shown: {
+      scale: 1,
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring",
+        stiffness: 200,
+        damping: 22,
+        delay: index * 0.07,
+      },
+    },
   };
 
   const introTarget = skipIntro
@@ -994,7 +979,7 @@ function DeckCard({
             transformStyle: "preserve-3d",
             perspective: 1000,
           }}
-          className="will-change-transform"
+          className="will-change-transform relative"
           animate={
             peelOn && index === activeIndex
               ? {
@@ -1016,9 +1001,6 @@ function DeckCard({
               peelOn
                 ? {
                     rotate: liftRot,
-                    // pointer-follow tilt is desktop-only; phones have no cursor
-                    rotateX: deskFx && index === activeIndex ? rotateX : 0,
-                    rotateY: deskFx && index === activeIndex ? rotateY : 0,
                   }
                 : { rotate: rot }
             }
@@ -1026,16 +1008,13 @@ function DeckCard({
             <div style={peelOn ? { rotate: `${rot}deg` } : undefined}>
               <Link
                 href={`/themes/${theme.slug}`}
-                {...(deskFx ? cursor : {})}
                 className={
                   deskFx
-                    ? "block w-[clamp(320px,50vw,780px)] cursor-none"
+                    ? "block w-[clamp(320px,50vw,780px)]"
                     : "block w-[min(85vw,420px)]"
                 }
               >
                 <motion.div
-                  onMouseMove={handleMouseMove}
-                  onMouseLeave={handleMouseLeave}
                   data-hero-front={isFront ? "" : undefined}
                   style={
                     peelOn
@@ -1046,7 +1025,7 @@ function DeckCard({
                   }
                   className={`group relative aspect-3/2 overflow-hidden rounded-2xl bg-(--ed-bg-soft) ring-1 ring-(--ed-line-soft) will-change-transform transition-all duration-500 ease-out ${
                     index === activeIndex
-                      ? "shadow-[0_40px_80px_-25px_rgba(17,17,17,0.45)] hover:shadow-[0_55px_100px_-30px_rgba(17,17,17,0.6)]"
+                      ? "shadow-[0_40px_80px_-25px_rgba(17,17,17,0.45)]"
                       : "shadow-[0_20px_40px_-15px_rgba(17,17,17,0.25)] opacity-75"
                   }`}
                 >
@@ -1057,7 +1036,7 @@ function DeckCard({
                       fill
                       priority={index <= 1}
                       sizes="(max-width: 1024px) 88vw, 44vw"
-                      className="object-cover object-top transition-transform duration-700 ease-out group-hover:scale-[1.03] will-change-transform"
+                      className="object-cover object-top will-change-transform"
                     />
                   )}
 
@@ -1069,15 +1048,6 @@ function DeckCard({
                     />
                   )}
 
-                  {/* Cursor lighting spotlight — follows the pointer, so desktop only */}
-                  {deskFx && index === activeIndex && (
-                    <motion.div
-                      className="pointer-events-none absolute inset-0 z-10"
-                      style={{
-                        background: spotlightBg,
-                      }}
-                    />
-                  )}
 
                   {/* Glass reflection sweep */}
                   {peelOn && index === activeIndex && (

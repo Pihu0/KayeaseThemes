@@ -10,6 +10,7 @@ import {
   useMotionValue,
   useReducedMotion,
   useTransform,
+  useSpring,
   type MotionValue,
 } from "motion/react";
 import { EASE, useIsDesktop } from "@/lib/motion";
@@ -38,7 +39,7 @@ function StripCard({ theme }: { theme: Theme }) {
     <Link
       href={`/themes/${theme.slug}`}
       data-strip-card
-      className="group w-[clamp(9.5rem,42vw,13rem)] shrink-0 backface-hidden transform-3d will-change-transform"
+      className="group w-[clamp(9.5rem,42vw,16rem)] lg:w-[clamp(14rem,16vw,20rem)] shrink-0 backface-hidden transform-3d will-change-transform"
     >
       <div className="relative aspect-4/5 overflow-hidden rounded-xl border border-(--ed-line) bg-(--ed-surface)">
         <Image
@@ -173,12 +174,14 @@ export default function HeroMorph({
   gridRef,
   active,
   onLanded,
+  morphProgress,
 }: {
   themes: Theme[];
   count: number;
   gridRef: React.RefObject<HTMLUListElement | null>;
   active: boolean;
   onLanded: (landed: boolean) => void;
+  morphProgress?: MotionValue<number>;
 }) {
   const desktop = useIsDesktop();
   const reduced = useReducedMotion();
@@ -195,9 +198,9 @@ export default function HeroMorph({
   const intro = useMotionValue(0);
   const phase = useMotionValue(0);
   const flowRef = useRef<ReturnType<typeof animate> | null>(null);
-  // until the entrance (stack → expand → flow) has finished, the covers ignore
-  // scroll entirely (p is pinned to 0) so the arc always plays cleanly
   const readyRef = useRef(false);
+  const [committed, setCommitted] = useState(false);
+
   useEffect(() => {
     if (!use3D || n === 0) return;
     let flow: ReturnType<typeof animate> | undefined;
@@ -231,16 +234,13 @@ export default function HeroMorph({
   const gapX = useMotionValue(32);
   const rowStepY = useMotionValue(360);
   const cellH = useMotionValue(320);
-  const p = useMotionValue(0);
+  const pTarget = useMotionValue(0);
+  const p = useSpring(pTarget, { stiffness: 80, damping: 20, restDelta: 0.001 });
   const anchorBottom = useMotionValue(0); // viewport-y of the hero CTA's bottom
   const hoveredRef = useRef(false); // pause the flow while a cover is hovered
   const [cols, setCols] = useState(3);
   const [vp, setVp] = useState({ w: 1440, h: 900 });
   const landedRef = useRef(false);
-  // the morph is a ONE-WAY commit: the first time the covers fully land, we latch
-  // it forever — the gallery keeps its cards and the covers never fly back on an
-  // up-scroll. Afterwards the overlay becomes a resting hero arc that simply lives
-  // in the hero zone (fading out toward the grid), so the hero is never empty.
   const committedRef = useRef(false);
   const overlayOp = useMotionValue(1); // whole-overlay opacity (scroll fade when resting)
 
@@ -258,35 +258,45 @@ export default function HeroMorph({
     const ab = anchor ? (anchor as HTMLElement).getBoundingClientRect().bottom : 0;
     anchorBottom.set(ab);
 
-    // ---- RESTING HERO ARC (post-commit) ----
-    // the covers now just live in the hero: pinned to the arc (p = 0), still
-    // flowing, and faded by scroll so they dissolve into the top as the hero
-    // scrolls away. They NEVER scrub back into the grid — the grid keeps its cards.
+    // ---- RESTING HERO ARC ----
     if (committedRef.current) {
-      p.set(0);
+      pTarget.set(0);
       const arcCenterY = ab !== 0 ? ab + 24 + ARC_HALF : vp.h * 0.72;
       const topEdge = vp.h * 0.12;
       const fullAt = vp.h * 0.5;
       const f0 = Math.max(0, Math.min(1, (arcCenterY - topEdge) / (fullAt - topEdge)));
       const f = f0 * f0 * (3 - 2 * f0); // smoothstep the scroll fade
       overlayOp.set(f);
-      // pause the flow while the arc is out of view (optimization) or hovered
       if (hoveredRef.current || f < 0.02) flowRef.current?.pause();
       else flowRef.current?.play();
       return;
+      
     }
 
     // hold the arc until the entrance is done — scroll can't morph it early
     if (!readyRef.current) {
-      p.set(0);
+      pTarget.set(0);
       return;
     }
     const el = gridRef.current;
-    if (!el) return;
-    const cells = Array.from(el.querySelectorAll("[data-morph-cell]")).map((c) =>
+    const cells = el ? Array.from(el.querySelectorAll("[data-morph-cell]")).map((c) =>
       (c as HTMLElement).getBoundingClientRect()
-    );
-    if (cells.length < n) return;
+    ) : [];
+    
+    // If we have no grid (e.g. Index view), just rest in the arc and fade out on scroll
+    if (cells.length < n) {
+      pTarget.set(0);
+      const arcCenterY = ab !== 0 ? ab + 24 + ARC_HALF : vp.h * 0.72;
+      const topEdge = vp.h * 0.12;
+      const fullAt = vp.h * 0.5;
+      const f0 = Math.max(0, Math.min(1, (arcCenterY - topEdge) / (fullAt - topEdge)));
+      const f = f0 * f0 * (3 - 2 * f0);
+      overlayOp.set(f);
+      if (hoveredRef.current || f < 0.02) flowRef.current?.pause();
+      else flowRef.current?.play();
+      return;
+    }
+    
     const first = cells[0];
     const c = Math.max(1, cells.filter((r) => Math.abs(r.top - first.top) < 4).length);
     if (c !== cols) setCols(c);
@@ -297,29 +307,20 @@ export default function HeroMorph({
     if (cells[1] && Math.abs(cells[1].top - first.top) < 4) gapX.set(cells[1].left - first.right);
     if (cells[c]) rowStepY.set(cells[c].top - first.top);
 
-    // progress: 0 while the grid sits below the fold, 1 when it reaches the top
-    // zone. A wide window (begin just below the fold, finish near the top) plus a
-    // smoothstep gives the covers a long, un-rushed glide instead of a fast snap —
-    // and the eased tail decelerates them gently onto the cells.
-    const START = vp.h * 1.1;
-    const LAND = vp.h * 0.12;
-    const raw = Math.max(0, Math.min(1, (START - first.top) / (START - LAND)));
-    const pv = raw * raw * (3 - 2 * raw); // smoothstep
-    p.set(pv);
-    if (raw > 0.015 || hoveredRef.current) flowRef.current?.pause();
+    const pv = morphProgress ? morphProgress.get() : 0;
+    pTarget.set(pv);
+    if (pv > 0.015 || hoveredRef.current) flowRef.current?.pause();
     else flowRef.current?.play();
 
-    // hand off early: reveal the real cells (instantly, under the still-opaque
-    // overlay) before the covers crossfade out, so there's no bare-then-fade-in
-    // flash. This toggle stays reversible until the morph fully completes.
-    const landed = pv >= 0.94;
+    const currentP = p.get();
+    const landed = currentP >= 0.995;
     if (landed !== landedRef.current) {
       landedRef.current = landed;
       onLanded(landed);
     }
-    // fully home → commit for good: from here the overlay is a resting hero arc
-    // and the grid owns its cards permanently (an up-scroll can't steal them back).
-    if (pv >= 0.999) committedRef.current = true;
+    if (currentP >= 0.995) {
+      committedRef.current = true;
+    }
   });
 
   if (!use3D || n === 0 || !active) return null;
@@ -457,16 +458,14 @@ function MorphCard({
     const ab = Math.abs(a);
     const fade = ab >= 68 ? 0 : ab <= 58 ? 1 : 1 - (ab - 58) / 10;
     const inArc = lerp(fade * rv, 1, pv);
-    // dissolve the cover over the last stretch, revealing the real cell (which is
-    // already placed underneath) — a gentle crossfade, not an abrupt swap
-    const out = pv > 0.94 ? 1 - (pv - 0.94) / 0.06 : 1;
-    return inArc * Math.max(0, out);
+    const out = pv >= 0.995 ? 0 : 1;
+    return inArc * out;
   });
 
   return (
     <motion.div
       className="absolute left-1/2 top-1/2"
-      style={{ transform, zIndex, opacity, transformStyle: "preserve-3d", pointerEvents: pe }}
+      style={{ transform, zIndex, opacity, transformStyle: "preserve-3d", pointerEvents: "none" }}
       onMouseEnter={() => onHover(true)}
       onMouseLeave={() => onHover(false)}
     >

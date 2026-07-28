@@ -98,7 +98,7 @@ export default function ThemeGallery({
                     initial={{ opacity: 0, y: 20, scale: 0.98 }}
                     animate={
                       morphHidden
-                        ? { opacity: 0, y: 0, scale: 1 }
+                        ? { opacity: 0, y: 0, scale: 1, transition: { duration: 0 } }
                         : isMorphCell
                           ? // revealed *under* the overlay's crossfade — appear
                             // instantly in final position, no entrance of our own

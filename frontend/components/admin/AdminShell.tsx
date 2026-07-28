@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Palette,
   FolderTree,
+  Mail,
   ExternalLink,
   LogOut,
   Menu,
@@ -18,14 +19,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
 import {
   Tooltip,
   TooltipContent,
@@ -37,6 +31,7 @@ const nav = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/themes", label: "Themes", icon: Palette },
   { href: "/admin/categories", label: "Categories", icon: FolderTree },
+  { href: "/admin/contacts", label: "Messages", icon: Mail },
 ];
 
 function isActive(pathname: string, href: string) {
@@ -50,6 +45,7 @@ function pageTitle(pathname: string) {
   if (/^\/admin\/themes\/[^/]+\/edit$/.test(pathname)) return "Edit Theme";
   if (pathname.startsWith("/admin/themes")) return "Themes";
   if (pathname.startsWith("/admin/categories")) return "Categories";
+  if (pathname.startsWith("/admin/contacts")) return "Messages";
   return "Admin";
 }
 
@@ -340,44 +336,6 @@ export default function AdminShell({
               <ExternalLink className="h-4 w-4" />
               <span className="hidden sm:inline">View Site</span>
             </Button>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={
-                  <button
-                    className="flex items-center gap-2 rounded-md px-1.5 py-1 text-sm hover:bg-foreground/[0.06]"
-                    aria-label="Account menu"
-                  >
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-foreground/[0.07] text-xs font-semibold">
-                      {initials}
-                    </span>
-                    <ChevronDown className="hidden h-4 w-4 text-muted-foreground sm:block" />
-                  </button>
-                }
-              />
-              <DropdownMenuContent align="end" className="w-52">
-                <DropdownMenuLabel>
-                  <div className="leading-tight">
-                    <p className="text-sm font-medium text-foreground">
-                      {user?.name || "Admin"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Administrator
-                    </p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  render={<Link href="/" target="_blank" />}
-                >
-                  <ExternalLink className="h-4 w-4" /> View Website
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem variant="destructive" onClick={logout}>
-                  <LogOut className="h-4 w-4" /> Log out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         </header>
 

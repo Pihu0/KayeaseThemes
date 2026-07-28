@@ -33,7 +33,7 @@ export default function IndustryExplorer({ entries }: { entries: IndustryEntry[]
   return (
     <section
       aria-label="Browse by industry"
-      className="bg-(--ed-bg-soft) py-28 sm:py-36"
+      className="bg-(--ed-bg) py-28 sm:py-36"
     >
       <div className="ed-px mx-auto max-w-[1760px]">
         <ul

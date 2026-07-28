@@ -73,12 +73,12 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${spaceGrotesk.variable} ${geistMono.variable} ${interTight.variable} h-full antialiased`}
+      className={`${inter.variable} ${spaceGrotesk.variable} ${geistMono.variable} ${interTight.variable} antialiased`}
     >
       {/* suppressHydrationWarning: browser extensions inject attributes on
           <body> (e.g. __processed_…__) before React hydrates, which would
           otherwise trip a hydration mismatch. */}
-      <body suppressHydrationWarning className="min-h-full flex flex-col">
+      <body suppressHydrationWarning className="min-h-screen flex flex-col">
         <Providers>
           <SiteChrome navbar={<Navbar />} footer={<Footer />}>
             {children}

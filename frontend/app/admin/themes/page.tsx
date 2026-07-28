@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   Pencil,
@@ -27,6 +28,7 @@ import {
 import type { Theme } from "@/lib/types";
 
 export default function AdminThemesPage() {
+  const router = useRouter();
   const [themes, setThemes] = useState<Theme[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
@@ -164,7 +166,11 @@ export default function AdminThemesPage() {
               {filtered.map((t) => (
                 <tr
                   key={t._id}
-                  className="border-b border-border transition-colors last:border-0 hover:bg-foreground/[0.02]"
+                  onClick={(e) => {
+                    if ((e.target as HTMLElement).closest('[data-no-row-click]')) return;
+                    router.push(`/admin/themes/${t._id}/edit`);
+                  }}
+                  className="border-b border-border transition-colors last:border-0 hover:bg-foreground/[0.02] cursor-pointer"
                 >
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-3">
@@ -199,7 +205,7 @@ export default function AdminThemesPage() {
                       {t.status === "published" ? "Published" : "Draft"}
                     </Badge>
                   </td>
-                  <td className="px-4 py-2.5 text-right">
+                  <td className="px-4 py-2.5 text-right" data-no-row-click>
                     <DropdownMenu>
                       <DropdownMenuTrigger
                         render={

@@ -24,6 +24,23 @@ const getContacts = async (req, res) => {
   }
 };
 
+// @desc   Update a contact message (e.g. toggle isRead)
+// @route  PATCH /api/contacts/:id   (admin)
+const updateContact = async (req, res) => {
+  try {
+    const contact = await Contact.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+    if (!contact) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+    res.status(200).json(contact);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
 // @desc   Delete a contact message
 // @route  DELETE /api/contacts/:id   (admin)
 const deleteContact = async (req, res) => {
@@ -38,4 +55,4 @@ const deleteContact = async (req, res) => {
   }
 };
 
-module.exports = { createContact, getContacts, deleteContact };
+module.exports = { createContact, getContacts, updateContact, deleteContact };

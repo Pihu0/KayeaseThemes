@@ -145,6 +145,10 @@ const themeSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    priority: {
+      type: Number,
+      default: 999,
+    },
 
     // --- Stats (for showcase) ---
     downloads: {

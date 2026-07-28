@@ -45,14 +45,14 @@ const getThemes = async (req, res) => {
       query.pricingType = pricing;
     }
 
-    // Sorting
-    let sortOption = { createdAt: -1 }; // newest first (default)
-    if (sort === "price-asc") sortOption = { price: 1 };
-    else if (sort === "price-desc") sortOption = { price: -1 };
+    // Sorting (featured first, then by priority ascending, then newest)
+    let sortOption = { featured: -1, priority: 1, createdAt: -1 };
+    if (sort === "price-asc") sortOption = { featured: -1, priority: 1, price: 1 };
+    else if (sort === "price-desc") sortOption = { featured: -1, priority: 1, price: -1 };
 
     // Pagination
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
-    const limitNum = Math.max(1, parseInt(limit, 10) || 9);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 9));
     const skip = (pageNum - 1) * limitNum;
 
     // Run the query and the count in parallel for speed

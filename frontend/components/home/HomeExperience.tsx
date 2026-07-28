@@ -8,7 +8,7 @@ import HomeHero from "@/components/home/HomeHero";
 
 import BrandStatement from "@/components/home/BrandStatement";
 import WhatWeDo from "@/components/home/WhatWeDo";
-import type { IndustryEntry } from "@/components/home/IndustryExplorer";
+import IndustryExplorer, { type IndustryEntry } from "@/components/home/IndustryExplorer";
 import WhyKayease from "@/components/home/WhyKayease";
 
 import type { Theme, Category } from "@/lib/types";
@@ -39,6 +39,7 @@ export default function HomeExperience({
   useEffect(() => {
     if (reduced) return;
     const lenis = new Lenis({ lerp: 0.115 });
+    (window as any).lenis = lenis;
     let raf = requestAnimationFrame(function loop(time) {
       lenis.raf(time);
       raf = requestAnimationFrame(loop);
@@ -46,6 +47,7 @@ export default function HomeExperience({
     return () => {
       cancelAnimationFrame(raf);
       lenis.destroy();
+      delete (window as any).lenis;
     };
   }, [reduced]);
 
@@ -107,6 +109,7 @@ export default function HomeExperience({
 
           <BrandStatement />
           <WhatWeDo />
+          <IndustryExplorer entries={derived.entries} />
           <WhyKayease stats={derived.stats} />
 
         </div>

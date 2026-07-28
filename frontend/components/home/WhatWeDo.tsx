@@ -171,13 +171,13 @@ export default function WhatWeDo() {
   return (
     <section
       aria-label="What we do"
-      className="relative w-full overflow-x-clip bg-(--ed-bg) py-24 transition-colors duration-300 sm:py-32 dark:bg-(--ed-dark)"
+      className="relative w-full overflow-x-clip bg-(--ed-bg) py-24 transition-colors duration-300 sm:py-32 dark:bg-(--ed-dark) max-md:-mt-[40svh] max-md:relative max-md:z-20"
     >
       <CheckeredGrid />
 
       <h2
         style={{ fontFamily: "var(--font-display)" }}
-        className="relative z-10 text-center text-[clamp(2.25rem,6vw,3.5rem)] font-bold tracking-tight text-(--primary)"
+        className="relative z-10 text-center text-[clamp(2.25rem,6vw,3.5rem)] font-bold tracking-tight text-(--ed-ink)"
       >
         What We Do
       </h2>
