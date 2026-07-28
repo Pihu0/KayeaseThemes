@@ -35,7 +35,7 @@ export default function CategoryStrip({
             <SectionLabel>Categories</SectionLabel>
             <MaskedLines
               as="h2"
-              mode="inView"
+              mode="inview"
               delay={0.1}
               lines={["Browse by category"]}
               className="ed-display mt-5 text-[clamp(2rem,4vw,3.25rem)]"
