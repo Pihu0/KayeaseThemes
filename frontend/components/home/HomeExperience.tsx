@@ -7,6 +7,7 @@ import { CursorProvider } from "@/components/home/cursor";
 import HomeHero from "@/components/home/HomeHero";
 
 import BrandStatement from "@/components/home/BrandStatement";
+import DetailsShowcase from "@/components/home/DetailsShowcase";
 import WhatWeDo from "@/components/home/WhatWeDo";
 import IndustryExplorer, { type IndustryEntry } from "@/components/home/IndustryExplorer";
 import WhyKayease from "@/components/home/WhyKayease";
@@ -108,6 +109,7 @@ export default function HomeExperience({
           <HomeHero themes={derived.heroDeck} total={derived.stats.themes} />
 
           <BrandStatement />
+          <DetailsShowcase themes={derived.selected} />
           <WhatWeDo />
           <IndustryExplorer entries={derived.entries} />
           <WhyKayease stats={derived.stats} />
